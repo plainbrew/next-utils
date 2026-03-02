@@ -1,5 +1,3 @@
-/* eslint-disable n/no-process-env */
-
 export type VercelEnvTarget = "only-production" | "all" | "disabled";
 
 export type BasicAuthOptions = {
