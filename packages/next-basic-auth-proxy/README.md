@@ -18,13 +18,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export default async function proxy(request: NextRequest) {
-  const authResponse = basicAuth(request, {
+  const basicAuthResponse = basicAuth(request, {
     username: process.env.BASIC_AUTH_USER ?? "",
     password: process.env.BASIC_AUTH_PASSWORD ?? "",
     // vercelEnvTarget: "all", // すべての Vercel 環境で Basic 認証を適用する場合
     // dev: true, // ローカル開発環境でも Basic 認証を適用する場合
   });
-  if (authResponse) return authResponse;
+  if (basicAuthResponse) return basicAuthResponse;
 
   return NextResponse.next();
 }
