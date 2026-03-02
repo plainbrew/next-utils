@@ -3,6 +3,8 @@
 export type BasicAuthOptions = {
   username: string;
   password: string;
+  /** NODE_ENV=development でも Basic 認証を適用するか。デフォルト: false */
+  dev?: boolean;
 };
 
 export function basicAuth(request: Request, options: BasicAuthOptions): Response | null {
@@ -15,22 +17,27 @@ export function basicAuth(request: Request, options: BasicAuthOptions): Response
     });
   }
 
-  // Vercel 環境でない場合は認証不要
-  if (process.env.VERCEL !== "1") {
+  const isDev = options.dev === true && process.env.NODE_ENV === "development";
+
+  // Vercel 環境でなく、dev モードでもない場合は認証不要
+  if (process.env.VERCEL !== "1" && !isDev) {
     return null;
   }
 
-  // BASIC_AUTH_TARGET のバリデーション
-  if (
-    !process.env.BASIC_AUTH_TARGET ||
-    !["all", "production"].includes(process.env.BASIC_AUTH_TARGET)
-  ) {
-    throw new Error("BASIC_AUTH_TARGET must be 'all' or 'production'");
-  }
+  // Vercel 環境の場合のみ BASIC_AUTH_TARGET を検証
+  if (!isDev) {
+    // BASIC_AUTH_TARGET のバリデーション
+    if (
+      !process.env.BASIC_AUTH_TARGET ||
+      !["all", "production"].includes(process.env.BASIC_AUTH_TARGET)
+    ) {
+      throw new Error("BASIC_AUTH_TARGET must be 'all' or 'production'");
+    }
 
-  // production ターゲットでも、production 環境以外では認証スキップ
-  if (process.env.BASIC_AUTH_TARGET === "production" && process.env.VERCEL_ENV !== "production") {
-    return null;
+    // production ターゲットでも、production 環境以外では認証スキップ
+    if (process.env.BASIC_AUTH_TARGET === "production" && process.env.VERCEL_ENV !== "production") {
+      return null;
+    }
   }
 
   const { username: authUser, password: authPassword } = options;
