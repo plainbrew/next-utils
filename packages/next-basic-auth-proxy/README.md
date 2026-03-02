@@ -41,10 +41,11 @@ export default async function proxy(request: NextRequest) {
 
 ### `vercelEnvTarget`
 
-| Value             | Behavior                                    |
-| ----------------- | ------------------------------------------- |
-| `only-production` | Apply Basic Auth to Vercel production only  |
-| `all`             | Apply Basic Auth to all Vercel environments |
+| Value             | Behavior                                      |
+| ----------------- | --------------------------------------------- |
+| `only-production` | Apply Basic Auth to Vercel production only    |
+| `all`             | Apply Basic Auth to all Vercel environments   |
+| `disabled`        | Disable Basic Auth on all Vercel environments |
 
 ### Notes
 

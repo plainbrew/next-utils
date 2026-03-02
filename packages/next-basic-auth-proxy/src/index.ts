@@ -1,6 +1,6 @@
 /* eslint-disable n/no-process-env */
 
-export type VercelEnvTarget = "only-production" | "all";
+export type VercelEnvTarget = "only-production" | "all" | "disabled";
 
 export type BasicAuthOptions = {
   username: string;
@@ -42,6 +42,9 @@ export function basicAuth(
   }
 
   if (process.env.VERCEL === "1") {
+    if (vercelEnvTarget === "disabled") {
+      return null;
+    }
     if (vercelEnvTarget === "only-production" && process.env.VERCEL_ENV !== "production") {
       return null;
     }
