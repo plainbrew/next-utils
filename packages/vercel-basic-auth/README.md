@@ -1,11 +1,11 @@
-# @plainbrew/next-basic-auth-proxy
+# @plainbrew/vercel-basic-auth
 
-Basic Auth handler for Next.js `proxy.ts`.
+Basic Auth handler for Vercel Edge Middleware.
 
 ## Install
 
 ```sh
-pnpm add @plainbrew/next-basic-auth-proxy
+pnpm add @plainbrew/vercel-basic-auth
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ pnpm add @plainbrew/next-basic-auth-proxy
 `proxy.ts`:
 
 ```ts
-import { basicAuth } from "@plainbrew/next-basic-auth-proxy";
+import { basicAuth } from "@plainbrew/vercel-basic-auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 

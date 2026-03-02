@@ -1,12 +1,11 @@
 {
-  "name": "@plainbrew/next-basic-auth-proxy",
+  "name": "@plainbrew/vercel-basic-auth",
   "version": "0.0.0",
-  "description": "Basic Auth handler for Next.js proxy.ts",
+  "description": "Basic Auth handler for Vercel Edge Middleware",
   "keywords": [
     "basic-auth",
     "middleware",
-    "next.js",
-    "proxy"
+    "vercel"
   ],
   "license": "MIT",
   "files": [
