@@ -1,0 +1,12 @@
+{
+  "name": "@plainbrew/next-utils",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.36.0"
+  }
+}
