@@ -20,7 +20,7 @@ export type BasicAuthOptions = {
 export function basicAuth(
   request: Request,
   {
-    username: authUser,
+    username: authUsername,
     password: authPassword,
     vercelEnvTarget = "only-production",
     dev = false,
@@ -61,8 +61,8 @@ export function basicAuth(
   }
 
   try {
-    const [user, password] = atob(authValue).split(":");
-    if (user !== authUser || password !== authPassword) {
+    const [username, password] = atob(authValue).split(":");
+    if (username !== authUsername || password !== authPassword) {
       return unauthorized();
     }
   } catch {
