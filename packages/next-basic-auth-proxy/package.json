@@ -28,8 +28,8 @@
     }
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "build": "tsup"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
