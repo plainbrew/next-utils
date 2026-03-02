@@ -21,6 +21,7 @@ export default async function proxy(request: NextRequest) {
   const authResponse = basicAuth(request, {
     username: process.env.BASIC_AUTH_USER ?? "",
     password: process.env.BASIC_AUTH_PASSWORD ?? "",
+    // vercelEnvTarget: "all", // すべての Vercel 環境で Basic 認証を適用する場合
     // dev: true, // ローカル開発環境でも Basic 認証を適用する場合
   });
   if (authResponse) return authResponse;
@@ -29,28 +30,22 @@ export default async function proxy(request: NextRequest) {
 }
 ```
 
-## Environment Variables
-
-| Variable            | Description           |
-| ------------------- | --------------------- |
-| `BASIC_AUTH_TARGET` | `all` or `production` |
-
-### `BASIC_AUTH_TARGET`
-
-| Value        | Behavior                                    |
-| ------------ | ------------------------------------------- |
-| `all`        | Apply Basic Auth to all Vercel environments |
-| `production` | Apply Basic Auth to Vercel production only  |
-
 ## Options
 
-| Option     | Type      | Required | Description                                                  |
-| ---------- | --------- | -------- | ------------------------------------------------------------ |
-| `username` | `string`  | ✓        | Basic Auth username                                          |
-| `password` | `string`  | ✓        | Basic Auth password                                          |
-| `dev`      | `boolean` |          | Apply Basic Auth in `NODE_ENV=development`. Default: `false` |
+| Option            | Type      | Required | Default             | Description                                |
+| ----------------- | --------- | -------- | ------------------- | ------------------------------------------ |
+| `username`        | `string`  | ✓        |                     | Basic Auth username                        |
+| `password`        | `string`  | ✓        |                     | Basic Auth password                        |
+| `vercelEnvTarget` | `string`  |          | `'only-production'` | Vercel environments to apply Basic Auth    |
+| `dev`             | `boolean` |          | `false`             | Apply Basic Auth in `NODE_ENV=development` |
+
+### `vercelEnvTarget`
+
+| Value             | Behavior                                    |
+| ----------------- | ------------------------------------------- |
+| `only-production` | Apply Basic Auth to Vercel production only  |
+| `all`             | Apply Basic Auth to all Vercel environments |
 
 ### Notes
 
 - Basic Auth is only applied on Vercel (`VERCEL=1`) by default. Local development is skipped unless `dev: true`.
-- `BASIC_AUTH_TARGET` is required when running on Vercel. An error is thrown if it is missing or invalid.
