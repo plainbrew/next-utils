@@ -17,7 +17,15 @@ export type BasicAuthOptions = {
   dev?: boolean;
 };
 
-export function basicAuth(request: Request, options: BasicAuthOptions): Response | null {
+export function basicAuth(
+  request: Request,
+  {
+    username: authUser,
+    password: authPassword,
+    vercelEnvTarget = "only-production",
+    dev = false,
+  }: BasicAuthOptions,
+): Response | null {
   function unauthorized() {
     return new Response("Auth required", {
       status: 401,
@@ -27,24 +35,17 @@ export function basicAuth(request: Request, options: BasicAuthOptions): Response
     });
   }
 
-  const isDev = options.dev === true && process.env.NODE_ENV === "development";
-
-  // Vercel 環境でなく、dev モードでもない場合は認証不要
-  if (process.env.VERCEL !== "1" && !isDev) {
-    return null;
-  }
-
-  // Vercel 環境の場合のみ vercelEnvTarget を検証
-  if (!isDev) {
-    const vercelEnvTarget = options.vercelEnvTarget ?? "only-production";
-
-    // only-production ターゲットでも、production 環境以外では認証スキップ
-    if (vercelEnvTarget === "only-production" && process.env.VERCEL_ENV !== "production") {
+  if (process.env.NODE_ENV === "development") {
+    if (!dev) {
       return null;
     }
   }
 
-  const { username: authUser, password: authPassword } = options;
+  if (process.env.VERCEL === "1") {
+    if (vercelEnvTarget === "only-production" && process.env.VERCEL_ENV !== "production") {
+      return null;
+    }
+  }
 
   const authorization = request.headers.get("authorization");
   if (!authorization) {
