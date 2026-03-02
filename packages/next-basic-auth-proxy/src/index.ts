@@ -1,6 +1,11 @@
 /* eslint-disable n/no-process-env */
 
-export function basicAuth(request: Request): Response | null {
+export type BasicAuthOptions = {
+  username: string;
+  password: string;
+};
+
+export function basicAuth(request: Request, options: BasicAuthOptions): Response | null {
   function unauthorized() {
     return new Response("Auth required", {
       status: 401,
@@ -28,15 +33,7 @@ export function basicAuth(request: Request): Response | null {
     return null;
   }
 
-  const authUser = process.env.BASIC_AUTH_USER;
-  if (!authUser) {
-    throw new Error("BASIC_AUTH_USER is not set");
-  }
-
-  const authPassword = process.env.BASIC_AUTH_PASSWORD;
-  if (!authPassword) {
-    throw new Error("BASIC_AUTH_PASSWORD is not set");
-  }
+  const { username: authUser, password: authPassword } = options;
 
   const authorization = request.headers.get("authorization");
   if (!authorization) {

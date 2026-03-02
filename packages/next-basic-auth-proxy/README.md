@@ -18,7 +18,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export default async function proxy(request: NextRequest) {
-  const authResponse = basicAuth(request);
+  const authResponse = basicAuth(request, {
+    username: process.env.BASIC_AUTH_USER ?? "",
+    password: process.env.BASIC_AUTH_PASSWORD ?? "",
+  });
   if (authResponse) return authResponse;
 
   return NextResponse.next();
@@ -27,11 +30,9 @@ export default async function proxy(request: NextRequest) {
 
 ## Environment Variables
 
-| Variable              | Description           |
-| --------------------- | --------------------- |
-| `BASIC_AUTH_TARGET`   | `all` or `production` |
-| `BASIC_AUTH_USER`     | Username              |
-| `BASIC_AUTH_PASSWORD` | Password              |
+| Variable            | Description           |
+| ------------------- | --------------------- |
+| `BASIC_AUTH_TARGET` | `all` or `production` |
 
 ### `BASIC_AUTH_TARGET`
 
