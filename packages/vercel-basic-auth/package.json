@@ -8,6 +8,11 @@
     "vercel"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plainbrew/next-utils",
+    "directory": "packages/vercel-basic-auth"
+  },
   "files": [
     "dist"
   ],
