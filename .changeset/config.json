@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@changesets/config/schema.json",
-  "changelog": ["@changesets/changelog-github", { "repo": "plainbrew/figma-api-client" }],
+  "changelog": ["@changesets/changelog-github", { "repo": "plainbrew/next-utils" }],
   "commit": false,
   "fixed": [],
   "linked": [],
