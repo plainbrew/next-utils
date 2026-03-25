@@ -1,5 +1,11 @@
 # @plainbrew/vercel-basic-auth
 
+## 0.1.1
+
+### Patch Changes
+
+- [#12](https://github.com/plainbrew/next-utils/pull/12) [`43e4aa9`](https://github.com/plainbrew/next-utils/commit/43e4aa99e4550a311254897dc8f91683bc5462b3) Thanks [@amotarao](https://github.com/amotarao)! - fix: add repository information to package.json
+
 ## 0.1.0
 
 ### Minor Changes
