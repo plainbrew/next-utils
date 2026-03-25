@@ -1,5 +1,11 @@
 # @plainbrew/vercel-basic-auth
 
+## 0.1.2
+
+### Patch Changes
+
+- [#14](https://github.com/plainbrew/next-utils/pull/14) [`fadaaac`](https://github.com/plainbrew/next-utils/commit/fadaaac1ec154ab324fd5ff1d856f60a15c8f944) Thanks [@amotarao](https://github.com/amotarao)! - fix: run build before publish
+
 ## 0.1.1
 
 ### Patch Changes
