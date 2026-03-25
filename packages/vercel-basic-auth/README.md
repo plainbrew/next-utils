@@ -19,7 +19,7 @@ import type { NextRequest } from "next/server";
 
 export default async function proxy(request: NextRequest) {
   const basicAuthResponse = basicAuth(request, {
-    username: process.env.BASIC_AUTH_USER ?? "",
+    username: process.env.BASIC_AUTH_USERNAME ?? "",
     password: process.env.BASIC_AUTH_PASSWORD ?? "",
     // vercelEnvTarget: "all", // Apply Basic Auth to all Vercel environments
     // dev: true, // Apply Basic Auth in local development
