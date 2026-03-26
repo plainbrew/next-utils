@@ -1,8 +1,8 @@
 export type VercelEnvTarget = "only-production" | "all" | "disabled";
 
 export type BasicAuthOptions = {
-  username: string;
-  password: string;
+  username: string | undefined;
+  password: string | undefined;
   /**
    * Vercel 環境のどの範囲で Basic 認証を適用するか
    * @default 'only-production'
@@ -46,6 +46,10 @@ export function basicAuth(
     if (vercelEnvTarget === "only-production" && process.env.VERCEL_ENV !== "production") {
       return null;
     }
+  }
+
+  if (!authUsername || !authPassword) {
+    throw new Error("basicAuth: username and password must not be empty or undefined");
   }
 
   const authorization = request.headers.get("authorization");
