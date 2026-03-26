@@ -29,7 +29,8 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "test": "vitest run"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
