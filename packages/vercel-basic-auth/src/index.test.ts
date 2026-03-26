@@ -118,4 +118,35 @@ describe("認証ヘッダーのバリデーション", () => {
     const req = makeRequest(makeBasicAuthHeader(USERNAME, PASSWORD));
     expect(basicAuth(req, { username: USERNAME, password: PASSWORD })).toBeNull();
   });
+
+  test("Bearer スキームのとき 401 を返す", () => {
+    const req = makeRequest(`Bearer ${btoa(`${USERNAME}:${PASSWORD}`)}`);
+    const res = basicAuth(req, { username: USERNAME, password: PASSWORD });
+    expect(res?.status).toBe(401);
+  });
+
+  test("Digest スキームのとき 401 を返す", () => {
+    const req = makeRequest(`Digest ${btoa(`${USERNAME}:${PASSWORD}`)}`);
+    const res = basicAuth(req, { username: USERNAME, password: PASSWORD });
+    expect(res?.status).toBe(401);
+  });
+
+  test("パスワードに : が含まれるとき正しく認証できる", () => {
+    const passwordWithColon = "pass:word:extra";
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, passwordWithColon));
+    expect(basicAuth(req, { username: USERNAME, password: passwordWithColon })).toBeNull();
+  });
+
+  test("パスワードに : が含まれるとき誤ったパスワードで 401 を返す", () => {
+    const passwordWithColon = "pass:word:extra";
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, passwordWithColon));
+    const res = basicAuth(req, { username: USERNAME, password: "pass" });
+    expect(res?.status).toBe(401);
+  });
+
+  test(": を含まない base64 値のとき 401 を返す", () => {
+    const req = makeRequest(`Basic ${btoa("usernameonly")}`);
+    const res = basicAuth(req, { username: USERNAME, password: PASSWORD });
+    expect(res?.status).toBe(401);
+  });
 });
