@@ -32,12 +32,12 @@ export default async function proxy(request: NextRequest) {
 
 ## Options
 
-| Option            | Type      | Required | Default             | Description                                |
-| ----------------- | --------- | -------- | ------------------- | ------------------------------------------ |
-| `username`        | `string`  | ✓        |                     | Basic Auth username                        |
-| `password`        | `string`  | ✓        |                     | Basic Auth password                        |
-| `vercelEnvTarget` | `string`  |          | `'only-production'` | Vercel environments to apply Basic Auth    |
-| `dev`             | `boolean` |          | `false`             | Apply Basic Auth in `NODE_ENV=development` |
+| Option            | Type                  | Required | Default             | Description                                |
+| ----------------- | --------------------- | -------- | ------------------- | ------------------------------------------ |
+| `username`        | `string \| undefined` | ✓        |                     | Basic Auth username                        |
+| `password`        | `string \| undefined` | ✓        |                     | Basic Auth password                        |
+| `vercelEnvTarget` | `string`              |          | `'only-production'` | Vercel environments to apply Basic Auth    |
+| `dev`             | `boolean`             |          | `false`             | Apply Basic Auth in `NODE_ENV=development` |
 
 ### `vercelEnvTarget`
 
@@ -50,3 +50,5 @@ export default async function proxy(request: NextRequest) {
 ### Notes
 
 - Basic Auth is only applied on Vercel (`VERCEL=1`) by default. Local development is skipped unless `dev: true`.
+- `username` and `password` accept `undefined`, so `process.env.XXX` can be passed directly without type assertion.
+- If `username` or `password` is `undefined` or an empty string when Basic Auth is actually applied, an error is thrown. This prevents accidentally bypassing Basic Auth due to missing credentials.
