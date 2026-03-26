@@ -82,6 +82,50 @@ describe("Vercel 環境 (VERCEL=1)", () => {
   });
 });
 
+describe("username/password のバリデーション", () => {
+  test("username が undefined のとき Error を throw する", () => {
+    const req = makeRequest();
+    expect(() => basicAuth(req, { username: undefined, password: PASSWORD })).toThrow();
+  });
+
+  test("password が undefined のとき Error を throw する", () => {
+    const req = makeRequest();
+    expect(() => basicAuth(req, { username: USERNAME, password: undefined })).toThrow();
+  });
+
+  test("username が空文字のとき Error を throw する", () => {
+    const req = makeRequest();
+    expect(() => basicAuth(req, { username: "", password: PASSWORD })).toThrow();
+  });
+
+  test("password が空文字のとき Error を throw する", () => {
+    const req = makeRequest();
+    expect(() => basicAuth(req, { username: USERNAME, password: "" })).toThrow();
+  });
+
+  test("NODE_ENV=development (dev=false) で username が undefined でも null を返す", () => {
+    process.env.NODE_ENV = "development";
+    const req = makeRequest();
+    expect(basicAuth(req, { username: undefined, password: undefined })).toBeNull();
+  });
+
+  test("Vercel disabled で username が undefined でも null を返す", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_ENV = "production";
+    const req = makeRequest();
+    expect(
+      basicAuth(req, { username: undefined, password: undefined, vercelEnvTarget: "disabled" }),
+    ).toBeNull();
+  });
+
+  test("Vercel only-production で VERCEL_ENV=preview のとき username が undefined でも null を返す", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_ENV = "preview";
+    const req = makeRequest();
+    expect(basicAuth(req, { username: undefined, password: undefined })).toBeNull();
+  });
+});
+
 describe("認証ヘッダーのバリデーション", () => {
   test("Authorization ヘッダーなしのとき 401 を返す", () => {
     const req = makeRequest();
