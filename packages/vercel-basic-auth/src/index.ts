@@ -59,13 +59,19 @@ export function basicAuth(
     return unauthorized();
   }
 
-  const authValue = authorization.split(" ")[1];
-  if (authValue === undefined) {
+  const matched = authorization.match(/^Basic\s+(.+)$/i);
+  if (!matched) {
     return unauthorized();
   }
 
   try {
-    const [username, password] = atob(authValue).split(":");
+    const decoded = atob(matched[1]);
+    const separatorIndex = decoded.indexOf(":");
+    if (separatorIndex < 0) {
+      return unauthorized();
+    }
+    const username = decoded.slice(0, separatorIndex);
+    const password = decoded.slice(separatorIndex + 1);
     if (username !== authUsername || password !== authPassword) {
       return unauthorized();
     }
