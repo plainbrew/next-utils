@@ -49,7 +49,9 @@ export function basicAuth(
   }
 
   if (!authUsername || !authPassword) {
-    throw new Error("basicAuth: username and password must not be empty or undefined");
+    throw new Error(
+      "@plainbrew/vercel-basic-auth: username and password must not be empty or undefined",
+    );
   }
 
   const authorization = request.headers.get("authorization");
