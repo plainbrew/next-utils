@@ -17,10 +17,20 @@ function makeBasicAuthHeader(username: string, password: string): string {
   return `Basic ${btoa(`${username}:${password}`)}`;
 }
 
+const ORIGINAL_ENV = {
+  NODE_ENV: process.env.NODE_ENV,
+  VERCEL: process.env.VERCEL,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+};
+
 afterEach(() => {
-  delete process.env.NODE_ENV;
-  delete process.env.VERCEL;
-  delete process.env.VERCEL_ENV;
+  for (const key of Object.keys(ORIGINAL_ENV) as (keyof typeof ORIGINAL_ENV)[]) {
+    if (ORIGINAL_ENV[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = ORIGINAL_ENV[key];
+    }
+  }
 });
 
 describe("NODE_ENV=development", () => {
