@@ -13,6 +13,18 @@ export type BasicAuthOptions = {
    * @default false
    */
   dev?: boolean;
+  /**
+   * 組み込みの環境判定後、認証チェック前に呼ばれるコールバック
+   * - true を返すと通常の認証フローに進む
+   * - false を返すと認証失敗 (401) を返す
+   */
+  beforeAuth?: (request: Request) => boolean;
+  /**
+   * 認証成功後に呼ばれるコールバック
+   * - true を返すと通過する
+   * - false を返すと認証失敗 (401) を返す
+   */
+  afterAuth?: (request: Request) => boolean;
 };
 
 export function basicAuth(
@@ -22,6 +34,8 @@ export function basicAuth(
     password: authPassword,
     vercelEnvTarget = "only-production",
     dev = false,
+    beforeAuth,
+    afterAuth,
   }: BasicAuthOptions,
 ): Response | null {
   function unauthorized() {
@@ -31,6 +45,10 @@ export function basicAuth(
         "WWW-Authenticate": "Basic",
       },
     });
+  }
+
+  if (beforeAuth && !beforeAuth(request)) {
+    return unauthorized();
   }
 
   if (process.env.NODE_ENV === "development") {
@@ -76,6 +94,10 @@ export function basicAuth(
       return unauthorized();
     }
   } catch {
+    return unauthorized();
+  }
+
+  if (afterAuth && !afterAuth(request)) {
     return unauthorized();
   }
 
