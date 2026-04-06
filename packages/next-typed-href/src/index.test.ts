@@ -83,7 +83,7 @@ describe("catch-all segments [...slug]", () => {
     expect(() =>
       $href({
         route: "/posts/[...slug]",
-        routeParams: { slug: [] as unknown as string[] },
+        routeParams: { slug: [] },
       }),
     ).not.toThrow();
   });
