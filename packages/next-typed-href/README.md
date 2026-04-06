@@ -16,17 +16,11 @@ Define your routes and params map, then create a `$href` function:
 
 ```ts
 import { defineTypedHref } from "@plainbrew/next-typed-href";
+import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
-type Routes = "/" | "/users/" | "/users/[id]/" | "/posts/[...slug]/";
+type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-type RouteParamsMap = {
-  "/": Record<string, never>;
-  "/users/": Record<string, never>;
-  "/users/[id]/": { id: string };
-  "/posts/[...slug]/": { slug: string[] };
-};
-
-export const { $href } = defineTypedHref<Routes, RouteParamsMap>();
+export const { $href } = defineTypedHref<AppRoutes, AppRouteParamsMap>();
 ```
 
 ## Usage
