@@ -33,29 +33,29 @@ $href({ route: "/" });
 // => "/"
 
 // Dynamic segment
-$href({ route: "/users/[id]/", routeParams: { id: "42" } });
-// => "/users/42/"
+$href({ route: "/users/[id]", routeParams: { id: "42" } });
+// => "/users/42"
 
 // With search params
-$href({ route: "/users/", searchParams: { page: "2" } });
-// => "/users/?page=2"
+$href({ route: "/users", searchParams: { page: "2" } });
+// => "/users?page=2"
 
 // With hash
-$href({ route: "/users/[id]/", routeParams: { id: "1" }, hash: "profile" });
-// => "/users/1/#profile"
+$href({ route: "/users/[id]", routeParams: { id: "1" }, hash: "profile" });
+// => "/users/1#profile"
 
 // Catch-all segment
-$href({ route: "/posts/[...slug]/", routeParams: { slug: ["2024", "hello"] } });
-// => "/posts/2024/hello/"
+$href({ route: "/posts/[...slug]", routeParams: { slug: ["2024", "hello"] } });
+// => "/posts/2024/hello"
 ```
 
 ## Supported segment types
 
-| Segment            | Example route        | `routeParams` type    |
-| ------------------ | -------------------- | --------------------- |
-| Dynamic            | `/users/[id]/`       | `{ id: string }`      |
-| Catch-all          | `/posts/[...slug]/`  | `{ slug: string[] }`  |
-| Optional catch-all | `/docs/[[...path]]/` | `{ path?: string[] }` |
+| Segment            | Example route       | `routeParams` type    |
+| ------------------ | ------------------- | --------------------- |
+| Dynamic            | `/users/[id]`       | `{ id: string }`      |
+| Catch-all          | `/posts/[...slug]`  | `{ slug: string[] }`  |
+| Optional catch-all | `/docs/[[...path]]` | `{ path?: string[] }` |
 
 ### Notes
 
