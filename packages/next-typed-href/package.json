@@ -1,6 +1,6 @@
 {
   "name": "@plainbrew/next-typed-href",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type-safe href generator for Next.js App Router",
   "keywords": [
     "href",
