@@ -27,6 +27,21 @@ importers:
         specifier: ^0.36.0
         version: 0.36.0
 
+  packages/next-typed-href:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.13
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.1
+        version: 4.1.1(@types/node@22.19.13)(vite@8.0.2(@types/node@22.19.13)(esbuild@0.27.3)(yaml@2.8.2))
+
   packages/vercel-basic-auth:
     devDependencies:
       '@types/node':
