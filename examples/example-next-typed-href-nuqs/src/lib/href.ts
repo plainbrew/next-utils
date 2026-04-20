@@ -1,14 +1,11 @@
 import { defineTypedHrefWithNuqs } from "@plainbrew/next-typed-href/nuqs";
 import { parseAsInteger, parseAsString } from "nuqs/server";
 
-type Routes = "/" | "/search";
+import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
-type RouteParamsMap = {
-  "/": Record<string, never>;
-  "/search": Record<string, never>;
-};
+type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
   "/search": {
     q: parseAsString,
     page: parseAsInteger,
