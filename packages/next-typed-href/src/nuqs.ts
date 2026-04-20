@@ -1,6 +1,6 @@
 import type { inferParserType, ParserBuilder } from "nuqs";
 
-import { generatePath } from "./_generatePath";
+import { generatePath } from "./common/generatePath";
 
 type NuqsParsersMap<Routes extends string> = Partial<
   Record<Routes, Record<string, ParserBuilder<unknown>>>
