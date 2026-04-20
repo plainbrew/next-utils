@@ -79,6 +79,28 @@ describe("non-nuqs routes fall back to standard URLSearchParams", () => {
   });
 });
 
+describe("type errors on wrong param types", () => {
+  test("rejects number for string param (q)", () => {
+    // @ts-expect-error: q expects string, not number
+    $href({ route: "/search", searchParams: { q: 123 } });
+  });
+
+  test("rejects string for integer param (page)", () => {
+    // @ts-expect-error: page expects number, not string
+    $href({ route: "/search", searchParams: { page: "2" } });
+  });
+
+  test("rejects number for boolean param (featured)", () => {
+    // @ts-expect-error: featured expects boolean, not number
+    $href({ route: "/search", searchParams: { featured: 1 } });
+  });
+
+  test("rejects unknown param key", () => {
+    // @ts-expect-error: unknown is not a defined key for /search
+    $href({ route: "/search", searchParams: { unknown: "value" } });
+  });
+});
+
 describe("dynamic segments work with nuqs searchParams", () => {
   test("resolves route params and adds nuqs-typed searchParams", () => {
     const { $href: $hrefWithUser } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
