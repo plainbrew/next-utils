@@ -29,13 +29,11 @@ export default function SearchPage() {
 
       <nav>
         {page > 1 && (
-          <Link href={$href({ route: "/search", searchParams: { q: q || null, page: page - 1 } })}>
+          <Link href={$href({ route: "/search", searchParams: { q, page: page - 1 } })}>
             ← Prev
           </Link>
         )}{" "}
-        <Link href={$href({ route: "/search", searchParams: { q: q || null, page: page + 1 } })}>
-          Next →
-        </Link>
+        <Link href={$href({ route: "/search", searchParams: { q, page: page + 1 } })}>Next →</Link>
       </nav>
 
       <p>
