@@ -1,9 +1,8 @@
-import type { inferParserType, ParserBuilder } from "nuqs";
+import type { inferParserType, SingleParserBuilder } from "nuqs";
 
 import { generatePath } from "./common/generatePath";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyParserBuilder = ParserBuilder<any>;
+type AnyParserBuilder = SingleParserBuilder<any>;
 
 type NuqsParsersMap<Routes extends string> = Partial<
   Record<Routes, Record<string, AnyParserBuilder>>
