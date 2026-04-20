@@ -2,16 +2,19 @@ import type { inferParserType, ParserBuilder } from "nuqs";
 
 import { generatePath } from "./common/generatePath";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyParserBuilder = ParserBuilder<any>;
+
 type NuqsParsersMap<Routes extends string> = Partial<
-  Record<Routes, Record<string, ParserBuilder<unknown>>>
+  Record<Routes, Record<string, AnyParserBuilder>>
 >;
 
-type ParserValues<Parsers extends Record<string, ParserBuilder<unknown>>> = {
+type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]> | null;
 };
 
 type SearchParamsFor<T extends string, NuqsMap extends NuqsParsersMap<T>> =
-  NuqsMap[T] extends Record<string, ParserBuilder<unknown>>
+  NuqsMap[T] extends Record<string, AnyParserBuilder>
     ? ParserValues<NuqsMap[T]>
     : ConstructorParameters<typeof URLSearchParams>[0];
 
@@ -41,7 +44,7 @@ type PathOptionsFor<
 
 function serializeNuqsSearchParams(
   values: Record<string, unknown>,
-  parsers: Record<string, ParserBuilder<unknown>>,
+  parsers: Record<string, AnyParserBuilder>,
 ): string {
   const entries: [string, string][] = [];
   for (const [key, value] of Object.entries(values)) {
@@ -84,7 +87,7 @@ export function defineTypedHrefWithNuqs<
             )
           : options.route;
 
-      const routeParsers = nuqsMap[options.route];
+      const routeParsers = (nuqsMap as NuqsParsersMap<string>)[options.route];
       let search = "";
 
       if (options.searchParams != null) {
