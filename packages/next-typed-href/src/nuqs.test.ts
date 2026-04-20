@@ -116,3 +116,53 @@ describe("dynamic segments work with nuqs searchParams", () => {
     ).toBe("/users/42?tab=profile");
   });
 });
+
+describe("withDefault パターン", () => {
+  const { $href: $hrefWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    "/search": {
+      q: parseAsString.withDefault(""),
+      page: parseAsInteger.withDefault(1),
+    },
+  });
+
+  test("withDefault 付きの string パラメータをシリアライズする", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  });
+
+  test("withDefault 付きの integer パラメータをシリアライズする", () => {
+    expect($hrefWD({ route: "/search", searchParams: { page: 2 } })).toBe("/search?page=2");
+  });
+
+  test("複数の withDefault パラメータをシリアライズする", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "next", page: 3 } })).toBe(
+      "/search?q=next&page=3",
+    );
+  });
+
+  test("withDefault パラメータで undefined を渡すとスキップされる", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: undefined } })).toBe(
+      "/search?q=hello",
+    );
+  });
+
+  test("型エラー: withDefault パラメータに null は渡せない", () => {
+    // @ts-expect-error: withDefault により型が非 nullable になるため null は不可
+    $hrefWD({ route: "/search", searchParams: { q: null } });
+  });
+});
+
+describe("withDefault + 動的セグメント", () => {
+  test("ルートパラメータを解決し、withDefault 付き searchParams を付与する", () => {
+    const { $href: $hrefUserWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+      "/users/[id]": { tab: parseAsString.withDefault("profile") },
+    });
+
+    expect(
+      $hrefUserWD({
+        route: "/users/[id]",
+        routeParams: { id: "42" },
+        searchParams: { tab: "settings" },
+      }),
+    ).toBe("/users/42?tab=settings");
+  });
+});

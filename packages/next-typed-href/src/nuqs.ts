@@ -9,7 +9,7 @@ type NuqsParsersMap<Routes extends string> = Partial<
 >;
 
 type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
-  [K in keyof Parsers]?: inferParserType<Parsers[K]> | null;
+  [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
 type SearchParamsFor<T extends string, NuqsMap extends NuqsParsersMap<T>> =
