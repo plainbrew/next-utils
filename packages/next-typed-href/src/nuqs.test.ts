@@ -145,6 +145,16 @@ describe("withDefault パターン", () => {
     );
   });
 
+  test("デフォルト値と同じ値を渡すとパラメータが省略される", () => {
+    expect($hrefWD({ route: "/search", searchParams: { page: 1 } })).toBe("/search");
+  });
+
+  test("デフォルト値と異なる値のみシリアライズされる", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: 1 } })).toBe(
+      "/search?q=hello",
+    );
+  });
+
   test("型エラー: withDefault パラメータに null は渡せない", () => {
     // @ts-expect-error: withDefault により型が非 nullable になるため null は不可
     $hrefWD({ route: "/search", searchParams: { q: null } });
