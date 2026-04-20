@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import { useQueryStates } from "nuqs";
 
 import { $href } from "@/lib/href";
 
+import { searchParams } from "./searchParams";
+
 export default function SearchPage() {
   const [{ q, page }, setParams] = useQueryStates({
-    q: parseAsString.withDefault(""),
-    page: parseAsInteger.withDefault(1),
+    q: searchParams.q.withDefault(""),
+    page: searchParams.page.withDefault(1),
   });
 
   return (
