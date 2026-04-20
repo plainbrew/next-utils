@@ -63,3 +63,57 @@ $href({ route: "/posts/[...slug]", routeParams: { slug: ["2024", "hello"] } });
 - `searchParams` accepts anything that `URLSearchParams` accepts (plain object, array of pairs, or `URLSearchParams` instance).
 - `hash` should be specified without the leading `#`.
 - Optional catch-all segments (`[[...param]]`) resolve to an empty string when `undefined` is passed.
+
+## nuqs integration
+
+For routes with typed search params powered by [nuqs](https://nuqs.47ng.com/), use the `./nuqs` entry point:
+
+```sh
+pnpm add @plainbrew/next-typed-href nuqs
+```
+
+`lib/href.ts`:
+
+```ts
+import { defineTypedHrefWithNuqs } from "@plainbrew/next-typed-href/nuqs";
+import { parseAsInteger, parseAsString } from "nuqs/server";
+import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
+
+type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
+
+export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+  "/search": {
+    q: parseAsString,
+    page: parseAsInteger,
+  },
+});
+```
+
+### Usage
+
+```ts
+import { $href } from "@/lib/href";
+
+// nuqs-typed search params
+$href({ route: "/search", searchParams: { q: "hello", page: 2 } });
+// => "/search?q=hello&page=2"
+
+// null / undefined values are omitted
+$href({ route: "/search", searchParams: { q: "hello", page: null } });
+// => "/search?q=hello"
+
+// Routes without parsers fall back to standard URLSearchParams
+$href({ route: "/posts", searchParams: { page: "1" } });
+// => "/posts?page=1"
+
+// Dynamic segment + nuqs search params
+$href({ route: "/users/[id]", routeParams: { id: "42" }, searchParams: { tab: "profile" } });
+// => "/users/42?tab=profile"
+```
+
+### nuqs integration notes
+
+- `null` and `undefined` values are omitted from the query string.
+- Values are serialized using the nuqs parser's `serialize` method.
+- Routes without a parser defined fall back to standard `URLSearchParams` behavior.
+- `nuqs` is a peer dependency and is optional for projects not using this entry point.
