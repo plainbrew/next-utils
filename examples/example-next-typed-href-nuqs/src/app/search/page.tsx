@@ -8,10 +8,7 @@ import { $href } from "@/lib/href";
 import { searchParams } from "./searchParams";
 
 export default function SearchPage() {
-  const [{ q, page }, setParams] = useQueryStates({
-    q: searchParams.q.withDefault(""),
-    page: searchParams.page.withDefault(1),
-  });
+  const [{ q, page }, setParams] = useQueryStates(searchParams);
 
   return (
     <main>
@@ -21,7 +18,7 @@ export default function SearchPage() {
         <input
           type="text"
           placeholder="Search query"
-          value={q}
+          value={q ?? ""}
           onChange={(e) => setParams({ q: e.target.value || null, page: 1 })}
         />
       </div>
