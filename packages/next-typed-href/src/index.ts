@@ -24,7 +24,7 @@
  * $href({ route: "/users/", searchParams: { q: "hello" }, hash: "top" })
  * // => "/users/?q=hello#top"
  */
-import { generatePath } from "./_generatePath";
+import { generatePath } from "./common/generatePath";
 
 export function defineTypedHref<
   Routes extends string,
