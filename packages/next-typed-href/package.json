@@ -48,7 +48,7 @@
     "vitest": "^4.1.1"
   },
   "peerDependencies": {
-    "nuqs": ">=2.0.0"
+    "nuqs": ">=2.0.0 <3.0.0"
   },
   "peerDependenciesMeta": {
     "nuqs": {
