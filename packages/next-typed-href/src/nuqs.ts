@@ -13,35 +13,6 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
-type SearchParamsFor<T extends string, NuqsMap extends NuqsParsersMap<T>> =
-  NuqsMap[T] extends Record<string, AnyParserBuilder>
-    ? ParserValues<NuqsMap[T]>
-    : ConstructorParameters<typeof URLSearchParams>[0];
-
-type RouteHasParams<
-  T extends string,
-  RouteParamsMap extends Record<string, Record<string, unknown>>,
-> = RouteParamsMap[T] extends Record<string, never> ? false : true;
-
-type PathOptionsFor<
-  T extends string,
-  RouteParamsMap extends Record<string, Record<string, unknown>>,
-  NuqsMap extends NuqsParsersMap<string>,
-> = T extends string
-  ? RouteHasParams<T, RouteParamsMap> extends true
-    ? {
-        route: T;
-        routeParams: RouteParamsMap[T];
-        searchParams?: SearchParamsFor<T, NuqsMap>;
-        hash?: string;
-      }
-    : {
-        route: T;
-        searchParams?: SearchParamsFor<T, NuqsMap>;
-        hash?: string;
-      }
-  : never;
-
 /**
  * Type-safe href generator for Next.js App Router with nuqs integration.
  *
@@ -63,8 +34,31 @@ export function defineTypedHrefWithNuqs<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
 >() {
+  type RouteHasParams<T extends Routes> =
+    RouteParamsMap[T] extends Record<string, never> ? false : true;
+
   return function <NuqsMap extends NuqsParsersMap<Routes>>(nuqsMap: NuqsMap) {
-    function $href<T extends Routes>(options: PathOptionsFor<T, RouteParamsMap, NuqsMap>): string {
+    type SearchParamsFor<T extends Routes> =
+      NuqsMap[T] extends Record<string, AnyParserBuilder>
+        ? ParserValues<NuqsMap[T]>
+        : ConstructorParameters<typeof URLSearchParams>[0];
+
+    type PathOptionsFor<T extends Routes> = T extends Routes
+      ? RouteHasParams<T> extends true
+        ? {
+            route: T;
+            routeParams: RouteParamsMap[T];
+            searchParams?: SearchParamsFor<T>;
+            hash?: string;
+          }
+        : {
+            route: T;
+            searchParams?: SearchParamsFor<T>;
+            hash?: string;
+          }
+      : never;
+
+    function $href<T extends Routes>(options: PathOptionsFor<T>): string {
       const path =
         "routeParams" in options
           ? generatePath(
