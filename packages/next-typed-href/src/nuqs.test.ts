@@ -117,7 +117,7 @@ describe("dynamic segments work with nuqs searchParams", () => {
   });
 });
 
-describe("withDefault パターン", () => {
+describe("withDefault pattern", () => {
   const { $href: $hrefWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
     "/search": {
       q: parseAsString.withDefault(""),
@@ -125,44 +125,44 @@ describe("withDefault パターン", () => {
     },
   });
 
-  test("withDefault 付きの string パラメータをシリアライズする", () => {
+  test("serializes string param with withDefault", () => {
     expect($hrefWD({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
   });
 
-  test("withDefault 付きの integer パラメータをシリアライズする", () => {
+  test("serializes integer param with withDefault", () => {
     expect($hrefWD({ route: "/search", searchParams: { page: 2 } })).toBe("/search?page=2");
   });
 
-  test("複数の withDefault パラメータをシリアライズする", () => {
+  test("serializes multiple withDefault params", () => {
     expect($hrefWD({ route: "/search", searchParams: { q: "next", page: 3 } })).toBe(
       "/search?q=next&page=3",
     );
   });
 
-  test("withDefault パラメータで undefined を渡すとスキップされる", () => {
+  test("skips undefined values for withDefault params", () => {
     expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: undefined } })).toBe(
       "/search?q=hello",
     );
   });
 
-  test("デフォルト値と同じ値を渡すとパラメータが省略される", () => {
+  test("omits param when value equals default", () => {
     expect($hrefWD({ route: "/search", searchParams: { page: 1 } })).toBe("/search");
   });
 
-  test("デフォルト値と異なる値のみシリアライズされる", () => {
+  test("omits default-value params while keeping non-default ones", () => {
     expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: 1 } })).toBe(
       "/search?q=hello",
     );
   });
 
-  test("型エラー: withDefault パラメータに null は渡せない", () => {
-    // @ts-expect-error: withDefault により型が非 nullable になるため null は不可
+  test("rejects null for withDefault param (type error)", () => {
+    // @ts-expect-error: withDefault makes the type non-nullable, null is not allowed
     $hrefWD({ route: "/search", searchParams: { q: null } });
   });
 });
 
-describe("withDefault + 動的セグメント", () => {
-  test("ルートパラメータを解決し、withDefault 付き searchParams を付与する", () => {
+describe("withDefault with dynamic segments", () => {
+  test("resolves route params and adds withDefault searchParams", () => {
     const { $href: $hrefUserWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
       "/users/[id]": { tab: parseAsString.withDefault("profile") },
     });
