@@ -111,9 +111,36 @@ $href({ route: "/users/[id]", routeParams: { id: "42" }, searchParams: { tab: "p
 // => "/users/42?tab=profile"
 ```
 
+### `withDefault` pattern
+
+Parsers wrapped with `.withDefault()` make the type non-nullable and omit the key from the URL when the value equals the default:
+
+```ts
+export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+  "/search": {
+    q: parseAsString.withDefault(""),
+    page: parseAsInteger.withDefault(1),
+  },
+});
+
+// Value differs from default → included
+$href({ route: "/search", searchParams: { q: "hello", page: 2 } });
+// => "/search?q=hello&page=2"
+
+// Value equals default → omitted (consistent with nuqs URL semantics)
+$href({ route: "/search", searchParams: { q: "hello", page: 1 } });
+// => "/search?q=hello"
+
+// null is a type error for withDefault params
+$href({ route: "/search", searchParams: { q: null } });
+// => TypeError: Type 'null' is not assignable to type 'string | undefined'
+```
+
 ### nuqs integration notes
 
 - `null` and `undefined` values are omitted from the query string.
-- Values are serialized using the nuqs parser's `serialize` method.
+- Values are serialized using nuqs' `createSerializer`, which respects `withDefault` behavior.
+- When a `withDefault` param value equals the default, the key is cleared from the URL.
+- `null` is a type error for `withDefault` params (the type is non-nullable).
 - Routes without a parser defined fall back to standard `URLSearchParams` behavior.
 - `nuqs` is a peer dependency and is optional for projects not using this entry point.
