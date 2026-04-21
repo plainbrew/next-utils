@@ -1,5 +1,5 @@
-import { createSerializer } from "nuqs";
 import type { inferParserType, SingleParserBuilder } from "nuqs";
+import { createSerializer } from "nuqs/server";
 
 import { generatePath } from "./common/generatePath";
 
