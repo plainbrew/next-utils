@@ -116,3 +116,63 @@ describe("dynamic segments work with nuqs searchParams", () => {
     ).toBe("/users/42?tab=profile");
   });
 });
+
+describe("withDefault pattern", () => {
+  const { $href: $hrefWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    "/search": {
+      q: parseAsString.withDefault(""),
+      page: parseAsInteger.withDefault(1),
+    },
+  });
+
+  test("serializes string param with withDefault", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  });
+
+  test("serializes integer param with withDefault", () => {
+    expect($hrefWD({ route: "/search", searchParams: { page: 2 } })).toBe("/search?page=2");
+  });
+
+  test("serializes multiple withDefault params", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "next", page: 3 } })).toBe(
+      "/search?q=next&page=3",
+    );
+  });
+
+  test("skips undefined values for withDefault params", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: undefined } })).toBe(
+      "/search?q=hello",
+    );
+  });
+
+  test("omits param when value equals default", () => {
+    expect($hrefWD({ route: "/search", searchParams: { page: 1 } })).toBe("/search");
+  });
+
+  test("omits default-value params while keeping non-default ones", () => {
+    expect($hrefWD({ route: "/search", searchParams: { q: "hello", page: 1 } })).toBe(
+      "/search?q=hello",
+    );
+  });
+
+  test("rejects null for withDefault param (type error)", () => {
+    // @ts-expect-error: withDefault makes the type non-nullable, null is not allowed
+    $hrefWD({ route: "/search", searchParams: { q: null } });
+  });
+});
+
+describe("withDefault with dynamic segments", () => {
+  test("resolves route params and adds withDefault searchParams", () => {
+    const { $href: $hrefUserWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+      "/users/[id]": { tab: parseAsString.withDefault("profile") },
+    });
+
+    expect(
+      $hrefUserWD({
+        route: "/users/[id]",
+        routeParams: { id: "42" },
+        searchParams: { tab: "settings" },
+      }),
+    ).toBe("/users/42?tab=settings");
+  });
+});

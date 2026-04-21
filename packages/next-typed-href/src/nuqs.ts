@@ -1,4 +1,5 @@
 import type { inferParserType, SingleParserBuilder } from "nuqs";
+import { createSerializer } from "nuqs/server";
 
 import { generatePath } from "./common/generatePath";
 
@@ -9,7 +10,7 @@ type NuqsParsersMap<Routes extends string> = Partial<
 >;
 
 type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
-  [K in keyof Parsers]?: inferParserType<Parsers[K]> | null;
+  [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
 type SearchParamsFor<T extends string, NuqsMap extends NuqsParsersMap<T>> =
@@ -40,20 +41,6 @@ type PathOptionsFor<
         hash?: string;
       }
   : never;
-
-function serializeNuqsSearchParams(
-  values: Record<string, unknown>,
-  parsers: Record<string, AnyParserBuilder>,
-): string {
-  const entries: [string, string][] = [];
-  for (const [key, value] of Object.entries(values)) {
-    if (value === null || value === undefined) continue;
-    const parser = parsers[key];
-    const serialized = parser ? parser.serialize(value) : String(value);
-    entries.push([key, serialized]);
-  }
-  return entries.length > 0 ? `?${new URLSearchParams(entries).toString()}` : "";
-}
 
 /**
  * Type-safe href generator for Next.js App Router with nuqs integration.
@@ -91,10 +78,7 @@ export function defineTypedHrefWithNuqs<
 
       if (options.searchParams != null) {
         if (routeParsers) {
-          search = serializeNuqsSearchParams(
-            options.searchParams as Record<string, unknown>,
-            routeParsers,
-          );
+          search = createSerializer(routeParsers)(options.searchParams as Record<string, unknown>);
         } else {
           const sp = new URLSearchParams(
             options.searchParams as ConstructorParameters<typeof URLSearchParams>[0],
