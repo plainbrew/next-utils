@@ -15,7 +15,7 @@ importers:
         specifier: ^2.31.0
         version: 2.31.0(@types/node@22.19.17)
       '@changesets/config':
-        specifier: ^3.1.2
+        specifier: ^3.1.4
         version: 3.1.4
       husky:
         specifier: ^9.1.7
