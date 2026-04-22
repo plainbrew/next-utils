@@ -1,8 +1,8 @@
 # next-utils
 
-## Examples
+## 使用例
 
-| Example                                                               | 説明                                                            |
+| 使用例                                                                | 説明                                                            |
 | --------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [example-next-typed-href-nuqs](examples/example-next-typed-href-nuqs) | `defineTypedHrefWithNuqs` + nuqs の使用例（Next.js App Router） |
 

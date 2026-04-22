@@ -4,7 +4,7 @@ Type-safe href generator for Next.js App Router.
 
 ## Examples
 
-- [example-next-typed-href-nuqs](../../examples/example-next-typed-href-nuqs) — `defineTypedHrefWithNuqs` + nuqs の使用例
+- [example-next-typed-href-nuqs](../../examples/example-next-typed-href-nuqs) — minimal Next.js App Router example using `defineTypedHrefWithNuqs` with nuqs
 
 ## Install
 
