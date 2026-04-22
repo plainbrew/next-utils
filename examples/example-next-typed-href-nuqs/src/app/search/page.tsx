@@ -2,18 +2,17 @@
 
 import Link from "next/link";
 import { useQueryStates } from "nuqs";
+import { Suspense } from "react";
 
 import { $href } from "@/lib/href";
 
 import { searchParams } from "./searchParams";
 
-export default function SearchPage() {
+function SearchContent() {
   const [{ q, page }, setParams] = useQueryStates(searchParams);
 
   return (
-    <main>
-      <h1>Search</h1>
-
+    <>
       <div>
         <input
           type="text"
@@ -35,6 +34,18 @@ export default function SearchPage() {
         )}{" "}
         <Link href={$href({ route: "/search", searchParams: { q, page: page + 1 } })}>Next →</Link>
       </nav>
+    </>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <main>
+      <h1>Search</h1>
+
+      <Suspense>
+        <SearchContent />
+      </Suspense>
 
       <p>
         <Link href={$href({ route: "/" })}>← Back to home</Link>
