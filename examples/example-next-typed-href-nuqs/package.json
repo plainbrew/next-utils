@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typegen": "next typegen"
+    "typegen": "next typegen",
+    "type-check": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@plainbrew/next-typed-href": "workspace:*",
