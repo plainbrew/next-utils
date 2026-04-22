@@ -21,8 +21,8 @@ export default function HomePage() {
           </Link>
         </li>
         <li>
-          <Link href={$href({ route: "/search", searchParams: { q: null, page: 2 } })}>
-            Search: q=null (omitted), page=2
+          <Link href={$href({ route: "/search", searchParams: { q: "hello", page: 1 } })}>
+            Search: q=hello, page=1 (default, omitted)
           </Link>
         </li>
       </ul>
