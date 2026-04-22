@@ -1,5 +1,17 @@
 # next-utils
 
+## 使用例
+
+| 使用例                                                                | 説明                                                            |
+| --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [example-next-typed-href-nuqs](examples/example-next-typed-href-nuqs) | `defineTypedHrefWithNuqs` + nuqs の使用例（Next.js App Router） |
+
+### 起動方法
+
+```sh
+pnpm dev:example-next-typed-href-nuqs
+```
+
 ## リリース手順
 
 このリポジトリは [changesets](https://github.com/changesets/changesets) を使ってバージョン管理と npm publish を行います。

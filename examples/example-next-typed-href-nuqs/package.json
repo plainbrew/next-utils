@@ -1,0 +1,25 @@
+{
+  "name": "example-next-typed-href-nuqs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typegen": "next typegen",
+    "type-check": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@plainbrew/next-typed-href": "workspace:*",
+    "next": "^16.2.4",
+    "nuqs": "^2.8.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -19,4 +19,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run format:check
       - run: pnpm -r run test:run
+      - run: pnpm --filter "./packages/*" run build
       - run: pnpm -r run type-check
