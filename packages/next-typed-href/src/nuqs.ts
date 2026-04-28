@@ -13,6 +13,17 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
+// null が含まれる（= withDefault なし）フィールドは required、それ以外（withDefault あり）は optional
+type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
+  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: inferParserType<
+    Parsers[K]
+  >;
+} & {
+  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? never : K]?: inferParserType<
+    Parsers[K]
+  >;
+};
+
 export type DefineTypedHrefWithNuqsOptions = {
   requireSearchParams?: boolean;
 };
@@ -22,9 +33,15 @@ type RouteHasParams<
   RouteParamsMap extends Record<string, Record<string, unknown>>,
 > = RouteParamsMap[T] extends Record<string, never> ? false : true;
 
-type SearchParamsFor<T extends string, NuqsMap extends NuqsParsersMap<string>> =
+type SearchParamsFor<
+  T extends string,
+  NuqsMap extends NuqsParsersMap<string>,
+  Options extends DefineTypedHrefWithNuqsOptions,
+> =
   NuqsMap[T] extends Record<string, AnyParserBuilder>
-    ? ParserValues<NuqsMap[T]>
+    ? Options["requireSearchParams"] extends true
+      ? RequiredParserValues<NuqsMap[T]>
+      : ParserValues<NuqsMap[T]>
     : ConstructorParameters<typeof URLSearchParams>[0];
 
 type RouteHasNuqsParsers<T extends string, NuqsMap extends NuqsParsersMap<string>> =
@@ -36,9 +53,9 @@ type SearchParamsOptions<
   Options extends DefineTypedHrefWithNuqsOptions,
 > = Options["requireSearchParams"] extends true
   ? RouteHasNuqsParsers<T, NuqsMap> extends true
-    ? { searchParams: SearchParamsFor<T, NuqsMap> }
-    : { searchParams?: SearchParamsFor<T, NuqsMap> }
-  : { searchParams?: SearchParamsFor<T, NuqsMap> };
+    ? { searchParams: SearchParamsFor<T, NuqsMap, Options> }
+    : { searchParams?: SearchParamsFor<T, NuqsMap, Options> }
+  : { searchParams?: SearchParamsFor<T, NuqsMap, Options> };
 
 type PathOptionsFor<
   T extends string,

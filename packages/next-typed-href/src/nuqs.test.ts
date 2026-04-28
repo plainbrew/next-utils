@@ -184,8 +184,19 @@ describe("requireSearchParams option", () => {
     "/search": { q: parseAsString, page: parseAsInteger },
   });
 
-  test("accepts required searchParams", () => {
-    expect($hrefReq({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  test("accepts all required fields", () => {
+    expect($hrefReq({ route: "/search", searchParams: { q: "hello", page: 2 } })).toBe(
+      "/search?q=hello&page=2",
+    );
+  });
+
+  test("accepts null for required fields (omits from URL)", () => {
+    expect($hrefReq({ route: "/search", searchParams: { q: null, page: 2 } })).toBe(
+      "/search?page=2",
+    );
+    expect($hrefReq({ route: "/search", searchParams: { q: "hello", page: null } })).toBe(
+      "/search?q=hello",
+    );
   });
 
   test("non-nuqs routes still have optional searchParams", () => {
@@ -193,8 +204,44 @@ describe("requireSearchParams option", () => {
     expect($hrefReq({ route: "/posts", searchParams: { page: "1" } })).toBe("/posts?page=1");
   });
 
-  test("rejects missing searchParams for nuqs routes (type error)", () => {
+  test("rejects missing searchParams object for nuqs routes (type error)", () => {
     // @ts-expect-error: searchParams is required when requireSearchParams: true and parsers are defined
     $hrefReq({ route: "/search" });
+  });
+
+  test("rejects missing required field (type error)", () => {
+    // @ts-expect-error: page is required (no withDefault)
+    $hrefReq({ route: "/search", searchParams: { q: "hello" } });
+  });
+});
+
+describe("requireSearchParams with withDefault fields", () => {
+  const { $href: $hrefReqWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    requireSearchParams: true,
+  })({
+    "/search": {
+      q: parseAsString,
+      page: parseAsInteger.withDefault(1),
+    },
+  });
+
+  test("withDefault fields are optional", () => {
+    expect($hrefReqWD({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  });
+
+  test("can still pass withDefault fields", () => {
+    expect($hrefReqWD({ route: "/search", searchParams: { q: "hello", page: 2 } })).toBe(
+      "/search?q=hello&page=2",
+    );
+  });
+
+  test("rejects missing non-default field (type error)", () => {
+    // @ts-expect-error: q has no withDefault, so it is required
+    $hrefReqWD({ route: "/search", searchParams: { page: 2 } });
+  });
+
+  test("rejects missing searchParams entirely (type error)", () => {
+    // @ts-expect-error: searchParams is required
+    $hrefReqWD({ route: "/search" });
   });
 });
