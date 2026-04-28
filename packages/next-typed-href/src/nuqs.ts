@@ -101,11 +101,16 @@ type InnerFn<
  *
  * @example requiredSearchParams
  * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
- *   "/search": { q: parseAsString, page: parseAsInteger },
+ *   "/search": {
+ *     q: parseAsString,                    // required (no withDefault)
+ *     page: parseAsInteger.withDefault(1), // optional (has withDefault)
+ *   },
  * });
  *
- * $href({ route: "/search", searchParams: { q: "hello" } }) // OK
- * $href({ route: "/search" }) // Type error: searchParams is required
+ * $href({ route: "/search", searchParams: { q: "hello" } })        // OK (page is optional)
+ * $href({ route: "/search", searchParams: { q: "hello", page: 2 } }) // OK
+ * $href({ route: "/search" })                                        // Type error: searchParams is required
+ * $href({ route: "/search", searchParams: { page: 2 } })             // Type error: q is required
  */
 export function defineTypedHrefWithNuqs<
   Routes extends string,
