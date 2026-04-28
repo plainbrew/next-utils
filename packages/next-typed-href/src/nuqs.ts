@@ -13,7 +13,7 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
-// null が含まれる（= withDefault なし）フィールドは required、それ以外（withDefault あり）は optional
+// withDefault なし（nullable）→ required、withDefault あり（non-nullable）→ optional
 type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: inferParserType<
     Parsers[K]
@@ -24,8 +24,19 @@ type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   >;
 };
 
+// withDefault なし → required かつ NonNullable、withDefault あり → optional
+type StrictParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
+  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: NonNullable<
+    inferParserType<Parsers[K]>
+  >;
+} & {
+  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? never : K]?: inferParserType<
+    Parsers[K]
+  >;
+};
+
 export type DefineTypedHrefWithNuqsOptions = {
-  requiredSearchParams?: boolean;
+  requiredSearchParams?: boolean | "strict";
 };
 
 type RouteHasParams<
@@ -39,9 +50,11 @@ type SearchParamsFor<
   Options extends DefineTypedHrefWithNuqsOptions,
 > =
   NuqsMap[T] extends Record<string, AnyParserBuilder>
-    ? Options["requiredSearchParams"] extends true
-      ? RequiredParserValues<NuqsMap[T]>
-      : ParserValues<NuqsMap[T]>
+    ? Options["requiredSearchParams"] extends "strict"
+      ? StrictParserValues<NuqsMap[T]>
+      : Options["requiredSearchParams"] extends true | "strict"
+        ? RequiredParserValues<NuqsMap[T]>
+        : ParserValues<NuqsMap[T]>
     : ConstructorParameters<typeof URLSearchParams>[0];
 
 type RouteHasNuqsParsers<T extends string, NuqsMap extends NuqsParsersMap<string>> =
@@ -51,7 +64,7 @@ type SearchParamsOptions<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
   Options extends DefineTypedHrefWithNuqsOptions,
-> = Options["requiredSearchParams"] extends true
+> = Options["requiredSearchParams"] extends true | "strict"
   ? RouteHasNuqsParsers<T, NuqsMap> extends true
     ? { searchParams: SearchParamsFor<T, NuqsMap, Options> }
     : { searchParams?: SearchParamsFor<T, NuqsMap, Options> }
@@ -90,6 +103,7 @@ type InnerFn<
  *
  * Pass `{ requiredSearchParams: true }` in the second call to make `searchParams`
  * required on routes that have nuqs parsers defined.
+ * Pass `{ requiredSearchParams: "strict" }` to additionally disallow `null` values.
  *
  * @example
  * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
@@ -99,18 +113,29 @@ type InnerFn<
  * $href({ route: "/search", searchParams: { q: "hello", page: 2 } })
  * // => "/search?q=hello&page=2"
  *
- * @example requiredSearchParams
+ * @example requiredSearchParams: true
  * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
  *   "/search": {
- *     q: parseAsString,                    // required (no withDefault)
- *     page: parseAsInteger.withDefault(1), // optional (has withDefault)
+ *     q: parseAsString,                    // required, null allowed
+ *     page: parseAsInteger.withDefault(1), // optional
  *   },
  * });
  *
- * $href({ route: "/search", searchParams: { q: "hello" } })        // OK (page is optional)
- * $href({ route: "/search", searchParams: { q: "hello", page: 2 } }) // OK
- * $href({ route: "/search" })                                        // Type error: searchParams is required
- * $href({ route: "/search", searchParams: { page: 2 } })             // Type error: q is required
+ * $href({ route: "/search", searchParams: { q: "hello" } })   // OK
+ * $href({ route: "/search", searchParams: { q: null } })       // OK (null clears the param)
+ * $href({ route: "/search" })                                   // Type error: searchParams is required
+ *
+ * @example requiredSearchParams: "strict"
+ * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: "strict" })({
+ *   "/search": {
+ *     q: parseAsString,                    // required, null not allowed
+ *     page: parseAsInteger.withDefault(1), // optional
+ *   },
+ * });
+ *
+ * $href({ route: "/search", searchParams: { q: "hello" } })  // OK
+ * $href({ route: "/search", searchParams: { q: null } })      // Type error: null not allowed
+ * $href({ route: "/search" })                                  // Type error: searchParams is required
  */
 export function defineTypedHrefWithNuqs<
   Routes extends string,

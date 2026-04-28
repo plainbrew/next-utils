@@ -214,3 +214,42 @@ describe("requiredSearchParams option", () => {
     $hrefReq({ route: "/search", searchParams: { page: 2 } });
   });
 });
+
+describe('requiredSearchParams: "strict" option', () => {
+  // q: no withDefault → required + non-nullable, page: withDefault → optional
+  const { $href: $hrefStrict } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    requiredSearchParams: "strict",
+  })({
+    "/search": { q: parseAsString, page: parseAsInteger.withDefault(1) },
+  });
+
+  test("accepts required field only (withDefault field omitted)", () => {
+    expect($hrefStrict({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  });
+
+  test("accepts both fields", () => {
+    expect($hrefStrict({ route: "/search", searchParams: { q: "hello", page: 2 } })).toBe(
+      "/search?q=hello&page=2",
+    );
+  });
+
+  test("non-nuqs routes still have optional searchParams", () => {
+    expect($hrefStrict({ route: "/posts" })).toBe("/posts");
+    expect($hrefStrict({ route: "/posts", searchParams: { page: "1" } })).toBe("/posts?page=1");
+  });
+
+  test("rejects missing searchParams object (type error)", () => {
+    // @ts-expect-error: searchParams is required
+    $hrefStrict({ route: "/search" });
+  });
+
+  test("rejects missing required field (type error)", () => {
+    // @ts-expect-error: q is required
+    $hrefStrict({ route: "/search", searchParams: { page: 2 } });
+  });
+
+  test("rejects null for required field (type error)", () => {
+    // @ts-expect-error: null is not allowed in strict mode
+    $hrefStrict({ route: "/search", searchParams: { q: null } });
+  });
+});
