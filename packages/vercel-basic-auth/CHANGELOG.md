@@ -1,5 +1,11 @@
 # @plainbrew/vercel-basic-auth
 
+## 0.2.1
+
+### Patch Changes
+
+- [#52](https://github.com/plainbrew/next-utils/pull/52) [`59c279f`](https://github.com/plainbrew/next-utils/commit/59c279f40dc1379948c463d35345d6ab24fe4a0a) Thanks [@amotarao](https://github.com/amotarao)! - chore: migrate build tool from tsup to tsdown
+
 ## 0.2.0
 
 ### Minor Changes
