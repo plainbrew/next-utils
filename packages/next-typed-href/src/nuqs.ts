@@ -13,30 +13,32 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
-// withDefault なし（nullable）→ required、withDefault あり（non-nullable）→ optional
-type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
-  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: inferParserType<
-    Parsers[K]
-  >;
-} & {
-  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? never : K]?: inferParserType<
-    Parsers[K]
-  >;
-};
+type FieldType<P extends AnyParserBuilder, NonNullable extends boolean> = NonNullable extends true
+  ? globalThis.NonNullable<inferParserType<P>>
+  : inferParserType<P>;
 
-// withDefault なし → required かつ NonNullable、withDefault あり → optional
-type StrictParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
-  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: NonNullable<
-    inferParserType<Parsers[K]>
-  >;
+// withDefault なし（nullable）かつ RequiredFields=true のフィールドは required、それ以外は optional
+type ParserValuesWithOptions<
+  Parsers extends Record<string, AnyParserBuilder>,
+  RequiredFields extends boolean,
+  NonNullableFields extends boolean,
+> = {
+  [K in keyof Parsers as RequiredFields extends true
+    ? null extends inferParserType<Parsers[K]>
+      ? K
+      : never
+    : never]: FieldType<Parsers[K], NonNullableFields>;
 } & {
-  [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? never : K]?: inferParserType<
-    Parsers[K]
-  >;
+  [K in keyof Parsers as RequiredFields extends true
+    ? null extends inferParserType<Parsers[K]>
+      ? never
+      : K
+    : K]?: FieldType<Parsers[K], NonNullableFields>;
 };
 
 export type DefineTypedHrefWithNuqsOptions = {
-  requiredSearchParams?: boolean | "strict";
+  requiredSearchParams?: boolean;
+  nonNullableSearchParams?: boolean;
 };
 
 type RouteHasParams<
@@ -50,10 +52,14 @@ type SearchParamsFor<
   Options extends DefineTypedHrefWithNuqsOptions,
 > =
   NuqsMap[T] extends Record<string, AnyParserBuilder>
-    ? Options["requiredSearchParams"] extends "strict"
-      ? StrictParserValues<NuqsMap[T]>
-      : Options["requiredSearchParams"] extends true | "strict"
-        ? RequiredParserValues<NuqsMap[T]>
+    ? Options["requiredSearchParams"] extends true
+      ? ParserValuesWithOptions<
+          NuqsMap[T],
+          true,
+          Options["nonNullableSearchParams"] extends true ? true : false
+        >
+      : Options["nonNullableSearchParams"] extends true
+        ? ParserValuesWithOptions<NuqsMap[T], false, true>
         : ParserValues<NuqsMap[T]>
     : ConstructorParameters<typeof URLSearchParams>[0];
 
@@ -64,7 +70,7 @@ type SearchParamsOptions<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
   Options extends DefineTypedHrefWithNuqsOptions,
-> = Options["requiredSearchParams"] extends true | "strict"
+> = Options["requiredSearchParams"] extends true
   ? RouteHasNuqsParsers<T, NuqsMap> extends true
     ? { searchParams: SearchParamsFor<T, NuqsMap, Options> }
     : { searchParams?: SearchParamsFor<T, NuqsMap, Options> }
@@ -101,9 +107,9 @@ type InnerFn<
  * Routes that have nuqs parsers defined accept typed searchParams values.
  * Routes without parsers fall back to standard URLSearchParams input.
  *
- * Pass `{ requiredSearchParams: true }` in the second call to make `searchParams`
- * required on routes that have nuqs parsers defined.
- * Pass `{ requiredSearchParams: "strict" }` to additionally disallow `null` values.
+ * Options (independent, can be combined):
+ * - `requiredSearchParams: true` — searchParams object required; fields without `.withDefault()` become required
+ * - `nonNullableSearchParams: true` — `null` disallowed for all fields (applies regardless of requiredSearchParams)
  *
  * @example
  * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
@@ -121,21 +127,29 @@ type InnerFn<
  *   },
  * });
  *
- * $href({ route: "/search", searchParams: { q: "hello" } })   // OK
- * $href({ route: "/search", searchParams: { q: null } })       // OK (null clears the param)
- * $href({ route: "/search" })                                   // Type error: searchParams is required
+ * $href({ route: "/search", searchParams: { q: "hello" } })  // OK
+ * $href({ route: "/search", searchParams: { q: null } })      // OK (null clears the param)
+ * $href({ route: "/search" })                                  // Type error: searchParams is required
  *
- * @example requiredSearchParams: "strict"
- * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: "strict" })({
- *   "/search": {
- *     q: parseAsString,                    // required, null not allowed
- *     page: parseAsInteger.withDefault(1), // optional
- *   },
+ * @example nonNullableSearchParams: true
+ * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ nonNullableSearchParams: true })({
+ *   "/search": { q: parseAsString, page: parseAsInteger.withDefault(1) },
  * });
  *
  * $href({ route: "/search", searchParams: { q: "hello" } })  // OK
  * $href({ route: "/search", searchParams: { q: null } })      // Type error: null not allowed
+ *
+ * @example both options
+ * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+ *   requiredSearchParams: true,
+ *   nonNullableSearchParams: true,
+ * })({
+ *   "/search": { q: parseAsString, page: parseAsInteger.withDefault(1) },
+ * });
+ *
+ * $href({ route: "/search", searchParams: { q: "hello" } })  // OK
  * $href({ route: "/search" })                                  // Type error: searchParams is required
+ * $href({ route: "/search", searchParams: { q: null } })      // Type error: null not allowed
  */
 export function defineTypedHrefWithNuqs<
   Routes extends string,
