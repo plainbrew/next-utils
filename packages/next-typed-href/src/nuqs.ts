@@ -19,8 +19,15 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
  * Routes that have nuqs parsers defined accept typed searchParams values.
  * Routes without parsers fall back to standard URLSearchParams input.
  *
+ * The function is curried — call it once with explicit type parameters to get
+ * a route-specific factory, then call that factory with your parsers map.
+ * TypeScript cannot infer the third type parameter alongside explicit ones
+ * (microsoft/TypeScript#26242), so the two-step form is required.
+ *
  * @example
- * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+ * // Recommended: store the factory and call it once
+ * const withNuqs = defineTypedHrefWithNuqs<Routes, RouteParamsMap>();
+ * const { $href } = withNuqs({
  *   "/search": { q: parseAsString, page: parseAsInteger },
  * });
  *

@@ -85,7 +85,9 @@ import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
 type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+const withNuqs = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>();
+
+export const { $href } = withNuqs({
   "/search": {
     q: parseAsString,
     page: parseAsInteger,
@@ -120,7 +122,9 @@ $href({ route: "/users/[id]", routeParams: { id: "42" }, searchParams: { tab: "p
 Parsers wrapped with `.withDefault()` make the type non-nullable and omit the key from the URL when the value equals the default:
 
 ```ts
-export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+const withNuqs = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>();
+
+export const { $href } = withNuqs({
   "/search": {
     q: parseAsString.withDefault(""),
     page: parseAsInteger.withDefault(1),
