@@ -25,7 +25,7 @@ type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
 };
 
 export type DefineTypedHrefWithNuqsOptions = {
-  requireSearchParams?: boolean;
+  requiredSearchParams?: boolean;
 };
 
 type RouteHasParams<
@@ -39,7 +39,7 @@ type SearchParamsFor<
   Options extends DefineTypedHrefWithNuqsOptions,
 > =
   NuqsMap[T] extends Record<string, AnyParserBuilder>
-    ? Options["requireSearchParams"] extends true
+    ? Options["requiredSearchParams"] extends true
       ? RequiredParserValues<NuqsMap[T]>
       : ParserValues<NuqsMap[T]>
     : ConstructorParameters<typeof URLSearchParams>[0];
@@ -51,7 +51,7 @@ type SearchParamsOptions<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
   Options extends DefineTypedHrefWithNuqsOptions,
-> = Options["requireSearchParams"] extends true
+> = Options["requiredSearchParams"] extends true
   ? RouteHasNuqsParsers<T, NuqsMap> extends true
     ? { searchParams: SearchParamsFor<T, NuqsMap, Options> }
     : { searchParams?: SearchParamsFor<T, NuqsMap, Options> }
@@ -88,7 +88,7 @@ type InnerFn<
  * Routes that have nuqs parsers defined accept typed searchParams values.
  * Routes without parsers fall back to standard URLSearchParams input.
  *
- * Pass `{ requireSearchParams: true }` in the second call to make `searchParams`
+ * Pass `{ requiredSearchParams: true }` in the second call to make `searchParams`
  * required on routes that have nuqs parsers defined.
  *
  * @example
@@ -99,8 +99,8 @@ type InnerFn<
  * $href({ route: "/search", searchParams: { q: "hello", page: 2 } })
  * // => "/search?q=hello&page=2"
  *
- * @example requireSearchParams
- * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requireSearchParams: true })({
+ * @example requiredSearchParams
+ * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
  *   "/search": { q: parseAsString, page: parseAsInteger },
  * });
  *
