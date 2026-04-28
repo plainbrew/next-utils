@@ -1,5 +1,5 @@
 ---
-"@plainbrew/next-typed-href": major
+"@plainbrew/next-typed-href": minor
 ---
 
 feat(nuqs): add `requiredSearchParams` option to `defineTypedHrefWithNuqs`
