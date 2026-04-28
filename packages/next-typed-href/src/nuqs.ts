@@ -13,7 +13,7 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
-// null が含まれる（= withDefault なし）フィールドは required、それ以外（withDefault あり）は optional
+// Fields whose inferred type includes null (no withDefault) are required; others (withDefault) are optional.
 type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: inferParserType<
     Parsers[K]
