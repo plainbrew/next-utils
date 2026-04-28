@@ -25,6 +25,26 @@ type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
 };
 
 export type DefineTypedHrefWithNuqsOptions = {
+  /**
+   * When `true`, `searchParams` becomes required on routes that have nuqs parsers defined.
+   *
+   * Among the required route's search params, fields whose parser has `.withDefault()` are optional;
+   * fields without `.withDefault()` (i.e. those whose inferred type includes `null`) are required.
+   *
+   * @default false
+   *
+   * @example
+   * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
+   *   "/search": {
+   *     q: parseAsString,                    // required (no withDefault)
+   *     page: parseAsInteger.withDefault(1), // optional (has withDefault)
+   *   },
+   * });
+   *
+   * $href({ route: "/search", searchParams: { q: "hello" } })          // OK
+   * $href({ route: "/search" })                                         // Type error: searchParams is required
+   * $href({ route: "/search", searchParams: { page: 2 } })             // Type error: q is required
+   */
   requiredSearchParams?: boolean;
 };
 
