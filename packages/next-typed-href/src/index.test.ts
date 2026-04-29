@@ -13,7 +13,7 @@ type RouteParamsMap = {
   "/search": Record<string, never>;
 };
 
-const { $href } = defineTypedHref<Routes, RouteParamsMap>();
+const { $href } = defineTypedHref.routes<Routes, RouteParamsMap>();
 
 describe("static routes", () => {
   test("returns route as-is when no params", () => {
