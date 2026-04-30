@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { basicAuth } from "./index";
 
@@ -192,5 +192,69 @@ describe("認証ヘッダーのバリデーション", () => {
     const req = makeRequest(`Basic ${btoa("usernameonly")}`);
     const res = basicAuth(req, { username: USERNAME, password: PASSWORD });
     expect(res?.status).toBe(401);
+  });
+});
+
+describe("beforeAuth コールバック", () => {
+  test("beforeAuth が false を返すとき 401 を返す", () => {
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, PASSWORD));
+    const res = basicAuth(req, {
+      username: USERNAME,
+      password: PASSWORD,
+      beforeAuth: () => false,
+    });
+    expect(res?.status).toBe(401);
+  });
+
+  test("beforeAuth が true を返すとき通常の認証フローに進む", () => {
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, PASSWORD));
+    expect(
+      basicAuth(req, { username: USERNAME, password: PASSWORD, beforeAuth: () => true }),
+    ).toBeNull();
+  });
+
+  test("beforeAuth が false を返すとき認証ヘッダーなしでも 401 を返す", () => {
+    const req = makeRequest();
+    const res = basicAuth(req, {
+      username: USERNAME,
+      password: PASSWORD,
+      beforeAuth: () => false,
+    });
+    expect(res?.status).toBe(401);
+  });
+
+  test("NODE_ENV=development (dev=false) のときも beforeAuth は呼ばれる", () => {
+    process.env.NODE_ENV = "development";
+    const beforeAuth = vi.fn(() => false);
+    const req = makeRequest();
+    const res = basicAuth(req, { username: USERNAME, password: PASSWORD, beforeAuth });
+    expect(beforeAuth).toHaveBeenCalled();
+    expect(res?.status).toBe(401);
+  });
+});
+
+describe("afterAuth コールバック", () => {
+  test("afterAuth が false を返すとき 401 を返す", () => {
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, PASSWORD));
+    const res = basicAuth(req, {
+      username: USERNAME,
+      password: PASSWORD,
+      afterAuth: () => false,
+    });
+    expect(res?.status).toBe(401);
+  });
+
+  test("afterAuth が true を返すとき null を返す", () => {
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, PASSWORD));
+    expect(
+      basicAuth(req, { username: USERNAME, password: PASSWORD, afterAuth: () => true }),
+    ).toBeNull();
+  });
+
+  test("認証失敗のとき afterAuth は呼ばれない", () => {
+    const afterAuth = vi.fn(() => true);
+    const req = makeRequest(makeBasicAuthHeader(USERNAME, "wrong"));
+    basicAuth(req, { username: USERNAME, password: PASSWORD, afterAuth });
+    expect(afterAuth).not.toHaveBeenCalled();
   });
 });
