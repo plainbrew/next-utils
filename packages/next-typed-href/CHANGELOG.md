@@ -1,5 +1,45 @@
 # @plainbrew/next-typed-href
 
+## 0.3.0
+
+### Minor Changes
+
+- [#58](https://github.com/plainbrew/next-utils/pull/58) [`34f31df`](https://github.com/plainbrew/next-utils/commit/34f31df495888c66f3faaa2ad6c4e9cc8e4ae7f3) Thanks [@amotarao](https://github.com/amotarao)! - feat(nuqs): add `requiredSearchParams` option to `defineTypedHrefWithNuqs`
+
+  ### Breaking change
+
+  `defineTypedHrefWithNuqs` is now a 3-level curried function. An options call has been inserted as the second level:
+
+  ```ts
+  // before
+  defineTypedHrefWithNuqs<Routes, RouteParamsMap>()(nuqsMap);
+
+  // after
+  defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()(nuqsMap);
+  ```
+
+  ### New feature
+
+  Pass `{ requiredSearchParams: true }` in the second call to enforce that `searchParams` is provided for routes with nuqs parsers defined.
+
+  Fields without `.withDefault()` become required; fields with `.withDefault()` remain optional.
+
+  ```ts
+  const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    requiredSearchParams: true,
+  })({
+    "/search": {
+      q: parseAsString, // required
+      page: parseAsInteger.withDefault(1), // optional
+    },
+  });
+
+  $href({ route: "/search", searchParams: { q: "hello" } }); // OK
+  $href({ route: "/search", searchParams: { q: "hello", page: 2 } }); // OK
+  $href({ route: "/search" }); // Type error
+  $href({ route: "/search", searchParams: { page: 2 } }); // Type error
+  ```
+
 ## 0.2.1
 
 ### Patch Changes
