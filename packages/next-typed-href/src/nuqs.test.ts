@@ -12,7 +12,7 @@ type RouteParamsMap = {
   "/posts": Record<string, never>;
 };
 
-const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
   "/search": {
     q: parseAsString,
     page: parseAsInteger,
@@ -103,7 +103,7 @@ describe("type errors on wrong param types", () => {
 
 describe("dynamic segments work with nuqs searchParams", () => {
   test("resolves route params and adds nuqs-typed searchParams", () => {
-    const { $href: $hrefWithUser } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    const { $href: $hrefWithUser } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
       "/users/[id]": { tab: parseAsString },
     });
 
@@ -118,7 +118,7 @@ describe("dynamic segments work with nuqs searchParams", () => {
 });
 
 describe("withDefault pattern", () => {
-  const { $href: $hrefWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+  const { $href: $hrefWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
     "/search": {
       q: parseAsString.withDefault(""),
       page: parseAsInteger.withDefault(1),
@@ -163,7 +163,7 @@ describe("withDefault pattern", () => {
 
 describe("withDefault with dynamic segments", () => {
   test("resolves route params and adds withDefault searchParams", () => {
-    const { $href: $hrefUserWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    const { $href: $hrefUserWD } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
       "/users/[id]": { tab: parseAsString.withDefault("profile") },
     });
 
@@ -174,5 +174,43 @@ describe("withDefault with dynamic segments", () => {
         searchParams: { tab: "settings" },
       }),
     ).toBe("/users/42?tab=settings");
+  });
+});
+
+describe("requiredSearchParams option", () => {
+  // q: no withDefault → required, page: withDefault → optional
+  const { $href: $hrefReq } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({
+    requiredSearchParams: true,
+  })({
+    "/search": { q: parseAsString, page: parseAsInteger.withDefault(1) },
+  });
+
+  test("accepts required field only (withDefault field omitted)", () => {
+    expect($hrefReq({ route: "/search", searchParams: { q: "hello" } })).toBe("/search?q=hello");
+  });
+
+  test("accepts both fields", () => {
+    expect($hrefReq({ route: "/search", searchParams: { q: "hello", page: 2 } })).toBe(
+      "/search?q=hello&page=2",
+    );
+  });
+
+  test("accepts null for required field (omits from URL)", () => {
+    expect($hrefReq({ route: "/search", searchParams: { q: null } })).toBe("/search");
+  });
+
+  test("non-nuqs routes still have optional searchParams", () => {
+    expect($hrefReq({ route: "/posts" })).toBe("/posts");
+    expect($hrefReq({ route: "/posts", searchParams: { page: "1" } })).toBe("/posts?page=1");
+  });
+
+  test("rejects missing searchParams object (type error)", () => {
+    // @ts-expect-error: searchParams is required when requiredSearchParams: true and parsers are defined
+    $hrefReq({ route: "/search" });
+  });
+
+  test("rejects missing required field (type error)", () => {
+    // @ts-expect-error: q has no withDefault, so it is required
+    $hrefReq({ route: "/search", searchParams: { page: 2 } });
   });
 });
