@@ -13,7 +13,7 @@
  *   "/users/[id]/": { id: string };
  * };
  *
- * const { $href } = defineTypedHref<Routes, RouteParamsMap>();
+ * const { $href } = defineTypedHref.routes<Routes, RouteParamsMap>();
  *
  * $href({ route: "/" })
  * // => "/"
@@ -26,47 +26,48 @@
  */
 import { generatePath } from "./common/generatePath";
 
-export function defineTypedHref<
-  Routes extends string,
-  RouteParamsMap extends Record<Routes, Record<string, unknown>>,
->() {
-  type RouteHasParams<T extends Routes> =
-    RouteParamsMap[T] extends Record<string, never> ? false : true;
+class TypedHrefBuilder {
+  routes<Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>() {
+    type RouteHasParams<T extends Routes> =
+      RouteParamsMap[T] extends Record<string, never> ? false : true;
 
-  type PathOptionsFor<T extends Routes> = T extends Routes
-    ? RouteHasParams<T> extends true
-      ? {
-          route: T;
-          routeParams: RouteParamsMap[T];
-          searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-          hash?: string;
-        }
-      : {
-          route: T;
-          searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-          hash?: string;
-        }
-    : never;
+    type PathOptionsFor<T extends Routes> = T extends Routes
+      ? RouteHasParams<T> extends true
+        ? {
+            route: T;
+            routeParams: RouteParamsMap[T];
+            searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
+            hash?: string;
+          }
+        : {
+            route: T;
+            searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
+            hash?: string;
+          }
+      : never;
 
-  function resolvePath<T extends Routes>(options: PathOptionsFor<T>): string {
-    if (!("routeParams" in options)) return options.route;
+    function resolvePath<T extends Routes>(options: PathOptionsFor<T>): string {
+      if (!("routeParams" in options)) return options.route;
 
-    const { routeParams } = options as unknown as {
-      route: T;
-      routeParams: Record<string, string | string[] | undefined>;
-    };
+      const { routeParams } = options as unknown as {
+        route: T;
+        routeParams: Record<string, string | string[] | undefined>;
+      };
 
-    return generatePath(options.route, routeParams);
+      return generatePath(options.route, routeParams);
+    }
+
+    function $href<T extends Routes>(options: PathOptionsFor<T>): string {
+      const path = resolvePath(options);
+      const search = options.searchParams
+        ? `?${new URLSearchParams(options.searchParams).toString()}`
+        : "";
+      const hash = options.hash ? `#${options.hash}` : "";
+      return path + search + hash;
+    }
+
+    return { $href };
   }
-
-  function $href<T extends Routes>(options: PathOptionsFor<T>): string {
-    const path = resolvePath(options);
-    const search = options.searchParams
-      ? `?${new URLSearchParams(options.searchParams).toString()}`
-      : "";
-    const hash = options.hash ? `#${options.hash}` : "";
-    return path + search + hash;
-  }
-
-  return { $href };
 }
+
+export const defineTypedHref = new TypedHrefBuilder();
