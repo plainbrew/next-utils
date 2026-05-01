@@ -187,11 +187,11 @@ describe("withDefault with dynamic segments", () => {
   });
 });
 
-describe(".requiredSearchParams() method", () => {
+describe(".withOptions({ requiredSearchParams: true }) method", () => {
   // q: no withDefault → required, page: withDefault → optional
   const { $href: $hrefReq } = defineTypedHrefWithNuqs
     .routes<Routes, RouteParamsMap>()
-    .requiredSearchParams()
+    .withOptions({ requiredSearchParams: true })
     .nuqs({
       "/search": { q: parseAsString, page: parseAsInteger.withDefault(1) },
     });
@@ -216,7 +216,7 @@ describe(".requiredSearchParams() method", () => {
   });
 
   test("rejects missing searchParams object (type error)", () => {
-    // @ts-expect-error: searchParams is required when .requiredSearchParams() and parsers are defined
+    // @ts-expect-error: searchParams is required when .withOptions({ requiredSearchParams: true }) and parsers are defined
     $hrefReq({ route: "/search" });
   });
 

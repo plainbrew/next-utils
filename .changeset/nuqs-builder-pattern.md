@@ -2,7 +2,7 @@
 "@plainbrew/next-typed-href": minor
 ---
 
-refactor: replace triple-curry with builder pattern, unify API
+refactor: replace triple-curry with builder pattern, add `.withOptions()`
 
 ### Breaking changes
 
@@ -24,11 +24,35 @@ defineTypedHref.routes<Routes, RouteParamsMap>();
 ```ts
 // before
 defineTypedHrefWithNuqs<Routes, RouteParamsMap>()(nuqsMap);
-// with requiredSearchParams (3-level curry)
 defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })(nuqsMap);
 
 // after
 defineTypedHrefWithNuqs.routes<Routes, RouteParamsMap>().nuqs(nuqsMap);
-// with requiredSearchParams
-defineTypedHrefWithNuqs.routes<Routes, RouteParamsMap>().requiredSearchParams().nuqs(nuqsMap);
+defineTypedHrefWithNuqs
+  .routes<Routes, RouteParamsMap>()
+  .withOptions({ requiredSearchParams: true })
+  .nuqs(nuqsMap);
+```
+
+### New feature: `.withOptions()`
+
+`requiredSearchParams: true` を渡すと、nuqs パーサーが定義されているルートで `searchParams` が必須になる。
+
+- `.withDefault()` なし → フィールドが required（`null` は渡せる）
+- `.withDefault()` あり → フィールドが optional
+
+```ts
+const { $href } = defineTypedHrefWithNuqs
+  .routes<Routes, RouteParamsMap>()
+  .withOptions({ requiredSearchParams: true })
+  .nuqs({
+    "/search": {
+      q: parseAsString, // required (no withDefault)
+      page: parseAsInteger.withDefault(1), // optional (has withDefault)
+    },
+  });
+
+$href({ route: "/search", searchParams: { q: "hello" } }); // OK
+$href({ route: "/search" }); // Type error: searchParams is required
+$href({ route: "/search", searchParams: { page: 2 } }); // Type error: q is required
 ```
