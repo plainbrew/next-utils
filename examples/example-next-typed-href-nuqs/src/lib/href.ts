@@ -5,6 +5,6 @@ import { searchParams as searchSearchParams } from "@/app/search/searchParams";
 
 type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()()({
-  "/search": searchSearchParams,
-});
+export const { $href } = defineTypedHrefWithNuqs
+  .routes<AppRoutes, AppRouteParamsMap>()
+  .nuqs({ "/search": searchSearchParams });
