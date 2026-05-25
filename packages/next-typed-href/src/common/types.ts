@@ -1,8 +1,38 @@
+/**
+ * Resolves at the type level whether a given route has dynamic params.
+ *
+ * Returns `true` when `RouteParamsMap[T]` has any keys, `false` when it is
+ * `Record<string, never>` (i.e. a static route with no dynamic segments).
+ *
+ * @example
+ * type Map = { "/": Record<string, never>; "/users/[id]": { id: string } };
+ * type A = RouteHasParams<"/", Map>;          // false
+ * type B = RouteHasParams<"/users/[id]", Map>; // true
+ */
 export type RouteHasParams<
   T extends string,
   RouteParamsMap extends Record<string, Record<string, unknown>>,
 > = RouteParamsMap[T] extends Record<string, never> ? false : true;
 
+/**
+ * Builds the `route` + (optional) `routeParams` shape for a single route.
+ *
+ * - If the route has dynamic params, the result requires `routeParams`.
+ * - If not, only `route` is required.
+ *
+ * Used by both `defineTypedHref` and `defineTypedHrefWithNuqs` to share the
+ * "route identity" portion of their `$href` argument types.
+ *
+ * @example
+ * type Routes = "/" | "/users/[id]";
+ * type Map = { "/": Record<string, never>; "/users/[id]": { id: string } };
+ *
+ * type Home = RouteIdentityFor<"/", Routes, Map>;
+ * // => { route: "/" }
+ *
+ * type User = RouteIdentityFor<"/users/[id]", Routes, Map>;
+ * // => { route: "/users/[id]"; routeParams: { id: string } }
+ */
 export type RouteIdentityFor<
   T extends string,
   Routes extends string,
