@@ -1,7 +1,8 @@
 import type { inferParserType, SingleParserBuilder } from "nuqs";
 import { createSerializer } from "nuqs/server";
 
-import { generatePath } from "./common/generatePath";
+import { resolveRoutePath } from "./common/resolveRoutePath";
+import type { RouteIdentityFor } from "./common/types";
 
 type AnyParserBuilder = SingleParserBuilder<any>;
 
@@ -51,11 +52,6 @@ export type NuqsBuilderOptions = {
   requiredSearchParams?: boolean;
 };
 
-type RouteHasParams<
-  T extends string,
-  RouteParamsMap extends Record<string, Record<string, unknown>>,
-> = RouteParamsMap[T] extends Record<string, never> ? false : true;
-
 type SearchParamsFor<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
@@ -86,12 +82,8 @@ type PathOptionsFor<
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
   NuqsMap extends NuqsParsersMap<Routes>,
   Options extends NuqsBuilderOptions,
-> = T extends Routes
-  ? (RouteHasParams<T, RouteParamsMap> extends true
-      ? { route: T; routeParams: RouteParamsMap[T] }
-      : { route: T }) &
-      SearchParamsOptions<T, NuqsMap, Options> & { hash?: string }
-  : never;
+> = RouteIdentityFor<T, Routes, RouteParamsMap> &
+  SearchParamsOptions<T, NuqsMap, Options> & { hash?: string };
 
 type WithRoutes<
   Routes extends string,
@@ -124,30 +116,31 @@ function createWithRoutes<
 >(): WithRoutes<Routes, RouteParamsMap, Options> {
   return {
     // `_opts` is used only at the type level to capture `NewOptions`.
-    // Calling `.withOptions()` again overwrites the previous options.
     withOptions<NewOptions extends NuqsBuilderOptions>(_opts: NewOptions) {
       return createWithRoutes<Routes, RouteParamsMap, NewOptions>();
     },
     nuqs<NuqsMap extends NuqsParsersMap<Routes>>(nuqsMap: NuqsMap) {
+      // Precompute one serializer per route so `$href` doesn't rebuild it on each call.
+      type Serializer = (values: Record<string, unknown>) => string;
+      const serializers: Record<string, Serializer> = {};
+      for (const route in nuqsMap) {
+        const parsers = (nuqsMap as NuqsParsersMap<string>)[route];
+        if (parsers) serializers[route] = createSerializer(parsers) as Serializer;
+      }
+
       function $href<T extends Routes>(
         options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
       ): string {
-        const path =
-          "routeParams" in options
-            ? generatePath(
-                options.route,
-                options.routeParams as Record<string, string | string[] | undefined>,
-              )
-            : options.route;
+        const path = resolveRoutePath(
+          options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
+        );
 
-        const routeParsers = (nuqsMap as NuqsParsersMap<string>)[options.route];
+        const serializer = serializers[options.route];
         let search = "";
 
         if (options.searchParams != null) {
-          if (routeParsers) {
-            search = createSerializer(routeParsers)(
-              options.searchParams as Record<string, unknown>,
-            );
+          if (serializer) {
+            search = serializer(options.searchParams as Record<string, unknown>);
           } else {
             const sp = new URLSearchParams(
               options.searchParams as ConstructorParameters<typeof URLSearchParams>[0],

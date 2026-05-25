@@ -20,7 +20,8 @@
  * $href({ route: "/users/", searchParams: { q: "hello" }, hash: "top" })
  * // => "/users/?q=hello#top"
  */
-import { generatePath } from "./common/generatePath";
+import { resolveRoutePath } from "./common/resolveRoutePath";
+import type { RouteIdentityFor } from "./common/types";
 
 type TypedHrefBuilder = {
   routes: <
@@ -31,49 +32,23 @@ type TypedHrefBuilder = {
   };
 };
 
-type RouteHasParams<
-  T extends string,
-  RouteParamsMap extends Record<string, Record<string, unknown>>,
-> = RouteParamsMap[T] extends Record<string, never> ? false : true;
-
 type PathOptionsFor<
   T extends string,
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
-> = T extends Routes
-  ? RouteHasParams<T, RouteParamsMap> extends true
-    ? {
-        route: T;
-        routeParams: RouteParamsMap[T];
-        searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-        hash?: string;
-      }
-    : {
-        route: T;
-        searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-        hash?: string;
-      }
-  : never;
+> = RouteIdentityFor<T, Routes, RouteParamsMap> & {
+  searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
+  hash?: string;
+};
 
 function createRoutes<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
 >() {
-  function resolvePath<T extends Routes>(
-    options: PathOptionsFor<T, Routes, RouteParamsMap>,
-  ): string {
-    if (!("routeParams" in options)) return options.route;
-
-    const { routeParams } = options as unknown as {
-      route: T;
-      routeParams: Record<string, string | string[] | undefined>;
-    };
-
-    return generatePath(options.route, routeParams);
-  }
-
   function $href<T extends Routes>(options: PathOptionsFor<T, Routes, RouteParamsMap>): string {
-    const path = resolvePath(options);
+    const path = resolveRoutePath(
+      options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
+    );
     const search = options.searchParams
       ? `?${new URLSearchParams(options.searchParams).toString()}`
       : "";
