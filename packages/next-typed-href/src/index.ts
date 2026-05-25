@@ -1,10 +1,6 @@
 /**
  * Type-safe href generator for Next.js App Router
  *
- * @template Routes - Union type of all route paths (with trailing slash)
- * @template RouteParamsMap - Map from route to its dynamic segment params `{ [Route in Routes]: ParamsOf<Route> }`
- * @returns Object with `$href` function for generating type-safe URLs
- *
  * @example
  * type Routes = "/" | "/users/" | "/users/[id]/";
  * type RouteParamsMap = {
@@ -13,7 +9,7 @@
  *   "/users/[id]/": { id: string };
  * };
  *
- * const { $href } = defineTypedHref<Routes, RouteParamsMap>();
+ * const { $href } = defineTypedHref.routes<Routes, RouteParamsMap>();
  *
  * $href({ route: "/" })
  * // => "/"
@@ -26,29 +22,46 @@
  */
 import { generatePath } from "./common/generatePath";
 
-export function defineTypedHref<
+type TypedHrefBuilder = {
+  routes: <
+    Routes extends string,
+    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
+  >() => {
+    $href: <T extends Routes>(options: PathOptionsFor<T, Routes, RouteParamsMap>) => string;
+  };
+};
+
+type RouteHasParams<
+  T extends string,
+  RouteParamsMap extends Record<string, Record<string, unknown>>,
+> = RouteParamsMap[T] extends Record<string, never> ? false : true;
+
+type PathOptionsFor<
+  T extends string,
+  Routes extends string,
+  RouteParamsMap extends Record<Routes, Record<string, unknown>>,
+> = T extends Routes
+  ? RouteHasParams<T, RouteParamsMap> extends true
+    ? {
+        route: T;
+        routeParams: RouteParamsMap[T];
+        searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
+        hash?: string;
+      }
+    : {
+        route: T;
+        searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
+        hash?: string;
+      }
+  : never;
+
+function createRoutes<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
 >() {
-  type RouteHasParams<T extends Routes> =
-    RouteParamsMap[T] extends Record<string, never> ? false : true;
-
-  type PathOptionsFor<T extends Routes> = T extends Routes
-    ? RouteHasParams<T> extends true
-      ? {
-          route: T;
-          routeParams: RouteParamsMap[T];
-          searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-          hash?: string;
-        }
-      : {
-          route: T;
-          searchParams?: ConstructorParameters<typeof URLSearchParams>[0];
-          hash?: string;
-        }
-    : never;
-
-  function resolvePath<T extends Routes>(options: PathOptionsFor<T>): string {
+  function resolvePath<T extends Routes>(
+    options: PathOptionsFor<T, Routes, RouteParamsMap>,
+  ): string {
     if (!("routeParams" in options)) return options.route;
 
     const { routeParams } = options as unknown as {
@@ -59,7 +72,7 @@ export function defineTypedHref<
     return generatePath(options.route, routeParams);
   }
 
-  function $href<T extends Routes>(options: PathOptionsFor<T>): string {
+  function $href<T extends Routes>(options: PathOptionsFor<T, Routes, RouteParamsMap>): string {
     const path = resolvePath(options);
     const search = options.searchParams
       ? `?${new URLSearchParams(options.searchParams).toString()}`
@@ -70,3 +83,7 @@ export function defineTypedHref<
 
   return { $href };
 }
+
+export const defineTypedHref: TypedHrefBuilder = {
+  routes: createRoutes,
+};
