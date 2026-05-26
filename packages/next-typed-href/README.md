@@ -24,7 +24,7 @@ import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
 type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHref<AppRoutes, AppRouteParamsMap>();
+export const { $href } = defineTypedHref.routes<AppRoutes, AppRouteParamsMap>();
 ```
 
 ## Usage
@@ -68,6 +68,36 @@ $href({ route: "/posts/[...slug]", routeParams: { slug: ["2024", "hello"] } });
 - `hash` should be specified without the leading `#`.
 - Optional catch-all segments (`[[...param]]`) resolve to an empty string when `undefined` is passed.
 
+## TypedHref — branded return type
+
+By default `$href()` returns `string`. Pass `{ branded: true }` to `.withOptions()` to get a `TypedHref` branded type instead, which lets you distinguish `$href()` output from plain strings at the type level.
+
+```ts
+import { defineTypedHref } from "@plainbrew/next-typed-href";
+import type { TypedHref } from "@plainbrew/next-typed-href";
+
+export const { $href } = defineTypedHref
+  .routes<AppRoutes, AppRouteParamsMap>()
+  .withOptions({ branded: true });
+```
+
+```ts
+import { $href } from "@/lib/href";
+import type { TypedHref } from "@plainbrew/next-typed-href";
+
+type LinkProps = { href: TypedHref };
+
+function SafeLink({ href }: LinkProps) { ... }
+
+// ✓ $href() result passes through
+<SafeLink href={$href({ route: "/" })} />
+
+// ✗ plain string causes a compile error
+<SafeLink href="/" />
+```
+
+`TypedHref` is a subtype of `string`, so it can be passed anywhere a `string` is expected — existing code is unaffected.
+
 ## nuqs integration
 
 For routes with typed search params powered by [nuqs](https://nuqs.47ng.com/), use the `./nuqs` entry point:
@@ -85,7 +115,7 @@ import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
 type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+export const { $href } = defineTypedHrefWithNuqs.routes<AppRoutes, AppRouteParamsMap>().nuqs({
   "/search": {
     q: parseAsString,
     page: parseAsInteger,
@@ -120,7 +150,7 @@ $href({ route: "/users/[id]", routeParams: { id: "42" }, searchParams: { tab: "p
 Parsers wrapped with `.withDefault()` make the type non-nullable and omit the key from the URL when the value equals the default:
 
 ```ts
-export const { $href } = defineTypedHrefWithNuqs<AppRoutes, AppRouteParamsMap>()({
+export const { $href } = defineTypedHrefWithNuqs.routes<AppRoutes, AppRouteParamsMap>().nuqs({
   "/search": {
     q: parseAsString.withDefault(""),
     page: parseAsInteger.withDefault(1),
@@ -139,6 +169,44 @@ $href({ route: "/search", searchParams: { q: "hello", page: 1 } });
 $href({ route: "/search", searchParams: { q: null } });
 // => TypeError: Type 'null' is not assignable to type 'string | undefined'
 ```
+
+### `withOptions`
+
+Call `.withOptions()` before `.nuqs()` to configure additional behavior:
+
+```ts
+export const { $href } = defineTypedHrefWithNuqs
+  .routes<AppRoutes, AppRouteParamsMap>()
+  .withOptions({
+    requiredSearchParams: true, // searchParams required on routes that have parsers
+    branded: true,              // $href() returns TypedHref instead of string
+  })
+  .nuqs({ ... });
+```
+
+#### `requiredSearchParams`
+
+When `true`, `searchParams` becomes required on routes that have nuqs parsers defined. Among those search params, fields with `.withDefault()` are optional and fields without are required.
+
+```ts
+export const { $href } = defineTypedHrefWithNuqs
+  .routes<AppRoutes, AppRouteParamsMap>()
+  .withOptions({ requiredSearchParams: true })
+  .nuqs({
+    "/search": {
+      q: parseAsString, // required (no withDefault)
+      page: parseAsInteger.withDefault(1), // optional (has withDefault)
+    },
+  });
+
+$href({ route: "/search", searchParams: { q: "hello" } }); // OK
+$href({ route: "/search" }); // Type error: searchParams is required
+$href({ route: "/search", searchParams: { page: 2 } }); // Type error: q is required
+```
+
+#### `branded`
+
+Returns `TypedHref` instead of `string` — see [TypedHref](#typedhref--branded-return-type) above.
 
 ### nuqs integration notes
 
