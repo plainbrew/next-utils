@@ -44,7 +44,7 @@ type WithTypedHrefRoutes<
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
   Options extends HrefOptions,
 > = {
-  withOptions: <NewOptions extends HrefOptions>(
+  withOptions: <const NewOptions extends HrefOptions>(
     opts: NewOptions,
   ) => WithTypedHrefRoutes<Routes, RouteParamsMap, NewOptions>;
   $href: <T extends Routes>(
@@ -78,7 +78,7 @@ function createWithTypedHrefRoutes<
   }
 
   return {
-    withOptions<NewOptions extends HrefOptions>(opts: NewOptions) {
+    withOptions<const NewOptions extends HrefOptions>(opts: NewOptions) {
       return createWithTypedHrefRoutes<Routes, RouteParamsMap, NewOptions>(opts);
     },
     $href,

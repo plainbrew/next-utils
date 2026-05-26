@@ -76,7 +76,7 @@ export type NuqsBuilderOptions = {
    * // ✗ plain string causes a compile error
    * <SafeLink href="/" />
    */
-  branded?: true;
+  branded?: boolean;
 };
 
 type SearchParamsFor<
@@ -117,7 +117,7 @@ type WithRoutes<
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
   Options extends NuqsBuilderOptions,
 > = {
-  withOptions: <NewOptions extends NuqsBuilderOptions>(
+  withOptions: <const NewOptions extends NuqsBuilderOptions>(
     opts: NewOptions,
   ) => WithRoutes<Routes, RouteParamsMap, NewOptions>;
   nuqs: <NuqsMap extends NuqsParsersMap<Routes>>(
@@ -143,7 +143,7 @@ function createWithRoutes<
 >(): WithRoutes<Routes, RouteParamsMap, Options> {
   return {
     // `_opts` is used only at the type level to capture `NewOptions`.
-    withOptions<NewOptions extends NuqsBuilderOptions>(_opts: NewOptions) {
+    withOptions<const NewOptions extends NuqsBuilderOptions>(_opts: NewOptions) {
       return createWithRoutes<Routes, RouteParamsMap, NewOptions>();
     },
     nuqs<NuqsMap extends NuqsParsersMap<Routes>>(nuqsMap: NuqsMap) {

@@ -18,7 +18,7 @@
 export type TypedHref = string & { readonly __brand: "TypedHref" };
 
 export type HrefOptions = {
-  branded?: true;
+  branded?: boolean;
 };
 
 export type HrefReturn<Options extends HrefOptions> = Options["branded"] extends true
