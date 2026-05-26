@@ -170,23 +170,16 @@ $href({ route: "/search", searchParams: { q: null } });
 // => TypeError: Type 'null' is not assignable to type 'string | undefined'
 ```
 
-### `withOptions`
+### `withOptions` — shared builder options
 
-Call `.withOptions()` before `.nuqs()` to configure additional behavior:
-
-```ts
-export const { $href } = defineTypedHrefWithNuqs
-  .routes<AppRoutes, AppRouteParamsMap>()
-  .withOptions({
-    requiredSearchParams: true, // searchParams required on routes that have parsers
-    branded: true,              // $href() returns TypedHref instead of string
-  })
-  .nuqs({ ... });
-```
+`.withOptions()` lets you configure behavior for the entire builder. Call it between `.routes()` and `.nuqs()`. Calling `.withOptions()` multiple times replaces the previous options.
 
 #### `requiredSearchParams`
 
-When `true`, `searchParams` becomes required on routes that have nuqs parsers defined. Among those search params, fields with `.withDefault()` are optional and fields without are required.
+When `true`, `searchParams` becomes required on routes that have nuqs parsers defined:
+
+- Fields **without** `.withDefault()` → required (the type includes `null`, so `null` is accepted)
+- Fields **with** `.withDefault()` → optional
 
 ```ts
 export const { $href } = defineTypedHrefWithNuqs
