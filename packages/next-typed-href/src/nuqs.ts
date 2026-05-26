@@ -1,7 +1,8 @@
 import type { inferParserType, SingleParserBuilder } from "nuqs";
 import { createSerializer } from "nuqs/server";
 
-import { generatePath } from "./common/generatePath";
+import { resolveRoutePath } from "./common/resolveRoutePath";
+import type { RouteIdentityFor } from "./common/types";
 
 type AnyParserBuilder = SingleParserBuilder<any>;
 
@@ -13,7 +14,7 @@ type ParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers]?: inferParserType<Parsers[K]>;
 };
 
-// Fields whose inferred type includes null (no withDefault) are required; others (withDefault) are optional.
+// null extends inferParserType<T> means no .withDefault() → required field
 type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   [K in keyof Parsers as null extends inferParserType<Parsers[K]> ? K : never]: inferParserType<
     Parsers[K]
@@ -24,7 +25,7 @@ type RequiredParserValues<Parsers extends Record<string, AnyParserBuilder>> = {
   >;
 };
 
-export type DefineTypedHrefWithNuqsOptions = {
+export type NuqsBuilderOptions = {
   /**
    * When `true`, `searchParams` becomes required on routes that have nuqs parsers defined.
    *
@@ -34,12 +35,15 @@ export type DefineTypedHrefWithNuqsOptions = {
    * @default false
    *
    * @example
-   * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
-   *   "/search": {
-   *     q: parseAsString,                    // required (no withDefault)
-   *     page: parseAsInteger.withDefault(1), // optional (has withDefault)
-   *   },
-   * });
+   * const { $href } = defineTypedHrefWithNuqs
+   *   .routes<Routes, RouteParamsMap>()
+   *   .withOptions({ requiredSearchParams: true })
+   *   .nuqs({
+   *     "/search": {
+   *       q: parseAsString,                    // required (no withDefault)
+   *       page: parseAsInteger.withDefault(1), // optional (has withDefault)
+   *     },
+   *   });
    *
    * $href({ route: "/search", searchParams: { q: "hello" } })          // OK
    * $href({ route: "/search" })                                         // Type error: searchParams is required
@@ -48,15 +52,10 @@ export type DefineTypedHrefWithNuqsOptions = {
   requiredSearchParams?: boolean;
 };
 
-type RouteHasParams<
-  T extends string,
-  RouteParamsMap extends Record<string, Record<string, unknown>>,
-> = RouteParamsMap[T] extends Record<string, never> ? false : true;
-
 type SearchParamsFor<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
-  Options extends DefineTypedHrefWithNuqsOptions,
+  Options extends NuqsBuilderOptions,
 > =
   NuqsMap[T] extends Record<string, AnyParserBuilder>
     ? Options["requiredSearchParams"] extends true
@@ -70,7 +69,7 @@ type RouteHasNuqsParsers<T extends string, NuqsMap extends NuqsParsersMap<string
 type SearchParamsOptions<
   T extends string,
   NuqsMap extends NuqsParsersMap<string>,
-  Options extends DefineTypedHrefWithNuqsOptions,
+  Options extends NuqsBuilderOptions,
 > = Options["requiredSearchParams"] extends true
   ? RouteHasNuqsParsers<T, NuqsMap> extends true
     ? { searchParams: SearchParamsFor<T, NuqsMap, Options> }
@@ -82,83 +81,66 @@ type PathOptionsFor<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
   NuqsMap extends NuqsParsersMap<Routes>,
-  Options extends DefineTypedHrefWithNuqsOptions,
-> = T extends Routes
-  ? (RouteHasParams<T, RouteParamsMap> extends true
-      ? { route: T; routeParams: RouteParamsMap[T] }
-      : { route: T }) &
-      SearchParamsOptions<T, NuqsMap, Options> & { hash?: string }
-  : never;
+  Options extends NuqsBuilderOptions,
+> = RouteIdentityFor<T, Routes, RouteParamsMap> &
+  SearchParamsOptions<T, NuqsMap, Options> & { hash?: string };
 
-type InnerFn<
+type WithRoutes<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
-  Options extends DefineTypedHrefWithNuqsOptions,
-> = <NuqsMap extends NuqsParsersMap<Routes>>(
-  nuqsMap: NuqsMap,
-) => {
-  $href: <T extends Routes>(
-    options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
-  ) => string;
+  Options extends NuqsBuilderOptions,
+> = {
+  withOptions: <NewOptions extends NuqsBuilderOptions>(
+    opts: NewOptions,
+  ) => WithRoutes<Routes, RouteParamsMap, NewOptions>;
+  nuqs: <NuqsMap extends NuqsParsersMap<Routes>>(
+    nuqsMap: NuqsMap,
+  ) => {
+    $href: <T extends Routes>(
+      options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
+    ) => string;
+  };
 };
 
-/**
- * Type-safe href generator for Next.js App Router with nuqs integration.
- *
- * Routes that have nuqs parsers defined accept typed searchParams values.
- * Routes without parsers fall back to standard URLSearchParams input.
- *
- * Pass `{ requiredSearchParams: true }` in the second call to make `searchParams`
- * required on routes that have nuqs parsers defined.
- *
- * @example
- * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()()({
- *   "/search": { q: parseAsString, page: parseAsInteger },
- * });
- *
- * $href({ route: "/search", searchParams: { q: "hello", page: 2 } })
- * // => "/search?q=hello&page=2"
- *
- * @example requiredSearchParams
- * const { $href } = defineTypedHrefWithNuqs<Routes, RouteParamsMap>()({ requiredSearchParams: true })({
- *   "/search": {
- *     q: parseAsString,                    // required (no withDefault)
- *     page: parseAsInteger.withDefault(1), // optional (has withDefault)
- *   },
- * });
- *
- * $href({ route: "/search", searchParams: { q: "hello" } })        // OK (page is optional)
- * $href({ route: "/search", searchParams: { q: "hello", page: 2 } }) // OK
- * $href({ route: "/search" })                                        // Type error: searchParams is required
- * $href({ route: "/search", searchParams: { page: 2 } })             // Type error: q is required
- */
-export function defineTypedHrefWithNuqs<
+type TypedHrefWithNuqsBuilder = {
+  routes: <
+    Routes extends string,
+    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
+  >() => WithRoutes<Routes, RouteParamsMap, {}>;
+};
+
+function createWithRoutes<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
->() {
-  return function <const Options extends DefineTypedHrefWithNuqsOptions = {}>(
-    _options?: Options,
-  ): InnerFn<Routes, RouteParamsMap, Options> {
-    return function <NuqsMap extends NuqsParsersMap<Routes>>(nuqsMap: NuqsMap) {
+  Options extends NuqsBuilderOptions,
+>(): WithRoutes<Routes, RouteParamsMap, Options> {
+  return {
+    // `_opts` is used only at the type level to capture `NewOptions`.
+    withOptions<NewOptions extends NuqsBuilderOptions>(_opts: NewOptions) {
+      return createWithRoutes<Routes, RouteParamsMap, NewOptions>();
+    },
+    nuqs<NuqsMap extends NuqsParsersMap<Routes>>(nuqsMap: NuqsMap) {
+      // Precompute one serializer per route so `$href` doesn't rebuild it on each call.
+      type Serializer = (values: Record<string, unknown>) => string;
+      const serializers: Record<string, Serializer> = {};
+      for (const route in nuqsMap) {
+        const parsers = (nuqsMap as NuqsParsersMap<string>)[route];
+        if (parsers) serializers[route] = createSerializer(parsers) as Serializer;
+      }
+
       function $href<T extends Routes>(
         options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
       ): string {
-        const path =
-          "routeParams" in options
-            ? generatePath(
-                options.route,
-                options.routeParams as Record<string, string | string[] | undefined>,
-              )
-            : options.route;
+        const path = resolveRoutePath(
+          options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
+        );
 
-        const routeParsers = (nuqsMap as NuqsParsersMap<string>)[options.route];
+        const serializer = serializers[options.route];
         let search = "";
 
         if (options.searchParams != null) {
-          if (routeParsers) {
-            search = createSerializer(routeParsers)(
-              options.searchParams as Record<string, unknown>,
-            );
+          if (serializer) {
+            search = serializer(options.searchParams as Record<string, unknown>);
           } else {
             const sp = new URLSearchParams(
               options.searchParams as ConstructorParameters<typeof URLSearchParams>[0],
@@ -172,6 +154,30 @@ export function defineTypedHrefWithNuqs<
       }
 
       return { $href };
-    };
+    },
   };
 }
+
+/**
+ * Builder for type-safe href generators for Next.js App Router with nuqs integration.
+ *
+ * Routes that have nuqs parsers defined accept typed searchParams values.
+ * Routes without parsers fall back to standard URLSearchParams input.
+ *
+ * Chaining: `.routes<R, M>()` is the only entry point. `.withOptions()` may
+ * be called before `.nuqs()`; calling `.withOptions()` more than once
+ * replaces the previously supplied options.
+ *
+ * @example
+ * const { $href } = defineTypedHrefWithNuqs
+ *   .routes<AppRoutes, AppRouteParamsMap>()
+ *   .nuqs({ "/search": { q: parseAsString, page: parseAsInteger } });
+ *
+ * $href({ route: "/search", searchParams: { q: "hello", page: 2 } })
+ * // => "/search?q=hello&page=2"
+ */
+export const defineTypedHrefWithNuqs: TypedHrefWithNuqsBuilder = {
+  routes() {
+    return createWithRoutes();
+  },
+};

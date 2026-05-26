@@ -1,3 +1,26 @@
+/**
+ * Substitutes dynamic segments in a Next.js App Router path template with values
+ * from `routeParams`. Values are URL-encoded.
+ *
+ * Supported segment forms:
+ * - Dynamic segments `[slug]` — replaced with the encoded string value.
+ * - Catch-all `[...rest]` — replaced with `/`-joined encoded array values.
+ * - Optional catch-all `[[...rest]]` — empty when the value is `undefined`,
+ *   otherwise behaves like catch-all.
+ *
+ * Throws when a required param is missing or has the wrong type
+ * (e.g. a non-array passed to a catch-all segment).
+ *
+ * @example
+ * generatePath("/users/[id]", { id: "42" });
+ * // => "/users/42"
+ *
+ * generatePath("/blog/[...slug]", { slug: ["2026", "hello"] });
+ * // => "/blog/2026/hello"
+ *
+ * generatePath("/docs/[[...path]]", { path: undefined });
+ * // => "/docs/"
+ */
 export function generatePath<T extends string>(
   route: T,
   routeParams: Record<string, string | string[] | undefined>,
