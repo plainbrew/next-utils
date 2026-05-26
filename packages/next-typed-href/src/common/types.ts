@@ -69,3 +69,29 @@ export type RouteIdentityFor<
     ? { route: T; routeParams: RouteParamsMap[T] }
     : { route: T }
   : never;
+
+/**
+ * Resolves to a required rest-parameter when `.routes()` is called without
+ * explicit type arguments, forcing an "Expected 1 arguments, but got 0" error
+ * **on the `.routes()` call itself** — not on a downstream property access.
+ *
+ * `Routes` defaults to its constraint upper bound (`string`) when the caller
+ * does not supply a type argument; `string extends Routes` detects that and
+ * resolves to a single-element tuple. The parameter name spells out the fix
+ * and its type carries the explanatory message — both visible on hover.
+ * When `Routes` is a proper literal union the tuple is empty, so type-correct
+ * call sites stay nullary.
+ *
+ * @example
+ * // ❌ Type error AT the call site: "Expected 1 arguments, but got 0."
+ * //    Hover on .routes shows the required parameter's name and message.
+ * defineTypedHref.routes();
+ *
+ * // ✅ OK
+ * defineTypedHref.routes<"/", { "/": Record<string, never> }>();
+ */
+export type RequireExplicitRoutesArgs<Routes extends string> = string extends Routes
+  ? [
+      pass_Routes_and_RouteParamsMap_as_type_arguments: "routes<Routes, RouteParamsMap>() requires explicit type arguments",
+    ]
+  : [];

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 
 import { defineTypedHref } from "./index";
 import type { TypedHref } from "./index";
@@ -66,9 +66,12 @@ describe("dynamic segments [slug]", () => {
 
 describe("catch-all segments [...slug]", () => {
   test("joins array with /", () => {
-    expect($href({ route: "/posts/[...slug]", routeParams: { slug: ["a", "b", "c"] } })).toBe(
-      "/posts/a/b/c",
-    );
+    expect(
+      $href({
+        route: "/posts/[...slug]",
+        routeParams: { slug: ["a", "b", "c"] },
+      }),
+    ).toBe("/posts/a/b/c");
   });
 
   test("encodes special characters in each segment", () => {
@@ -155,5 +158,16 @@ describe("searchParams formats", () => {
 
   test("no hash means no # in output", () => {
     expect($href({ route: "/" })).not.toContain("#");
+  });
+});
+
+describe("routes() requires explicit type arguments", () => {
+  test("calling routes() without type arguments is a type error at the call site", () => {
+    // @ts-expect-error: routes<Routes, RouteParamsMap>() requires explicit type arguments
+    defineTypedHref.routes();
+  });
+
+  test("routes<R, M>() with explicit type arguments compiles", () => {
+    expectTypeOf(defineTypedHref.routes<Routes, RouteParamsMap>()).toHaveProperty("$href");
   });
 });

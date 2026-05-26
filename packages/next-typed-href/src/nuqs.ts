@@ -2,7 +2,12 @@ import type { inferParserType, SingleParserBuilder } from "nuqs";
 import { createSerializer } from "nuqs/server";
 
 import { resolveRoutePath } from "./common/resolveRoutePath";
-import type { HrefReturn, RouteIdentityFor, TypedHref } from "./common/types";
+import type {
+  HrefReturn,
+  RequireExplicitRoutesArgs,
+  RouteIdentityFor,
+  TypedHref,
+} from "./common/types";
 
 export type { TypedHref };
 
@@ -130,10 +135,9 @@ type WithRoutes<
 };
 
 type TypedHrefWithNuqsBuilder = {
-  routes: <
-    Routes extends string,
-    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
-  >() => WithRoutes<Routes, RouteParamsMap, {}>;
+  routes: <Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>(
+    ...args: RequireExplicitRoutesArgs<Routes>
+  ) => WithRoutes<Routes, RouteParamsMap, {}>;
 };
 
 function createWithRoutes<
