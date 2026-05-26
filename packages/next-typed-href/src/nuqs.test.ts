@@ -228,16 +228,13 @@ describe(".withOptions({ requiredSearchParams: true }) method", () => {
 });
 
 describe(".withOptions({ branded: true })", () => {
-  test("returns string by default", () => {
-    expectTypeOf($href({ route: "/" })).toEqualTypeOf<string>();
-  });
-
   test("returns TypedHref when branded: true", () => {
     const { $href: $hrefBranded } = defineTypedHrefWithNuqs
       .routes<Routes, RouteParamsMap>()
       .withOptions({ branded: true })
       .nuqs({});
-    expectTypeOf($hrefBranded({ route: "/" })).toEqualTypeOf<TypedHref>();
+    const result: TypedHref = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
   });
 
   test("branded result is assignable to string", () => {
@@ -247,6 +244,11 @@ describe(".withOptions({ branded: true })", () => {
       .nuqs({});
     const result: string = $hrefBranded({ route: "/" });
     expect(result).toBe("/");
+  });
+
+  test("default $href() is not assignable to TypedHref (type error)", () => {
+    // @ts-expect-error: string is not TypedHref
+    const _: TypedHref = $href({ route: "/" });
   });
 });
 

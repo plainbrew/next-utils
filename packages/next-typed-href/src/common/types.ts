@@ -9,16 +9,16 @@
  *
  * type LinkProps = { href: TypedHref };
  *
- * // ✓ $href() の結果はそのまま渡せる
+ * // ✓ $href() result passes through
  * <SafeLink href={$href({ route: "/" })} />
  *
- * // ✗ 生の string はコンパイルエラー
+ * // ✗ plain string causes a compile error
  * <SafeLink href="/" />
  */
 export type TypedHref = string & { readonly __brand: "TypedHref" };
 
 export type HrefOptions = {
-  branded?: boolean;
+  branded?: true;
 };
 
 export type HrefReturn<Options extends HrefOptions> = Options["branded"] extends true

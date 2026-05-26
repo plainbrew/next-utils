@@ -70,13 +70,13 @@ export type NuqsBuilderOptions = {
    *
    * type LinkProps = { href: TypedHref };
    *
-   * // ✓ $href() の結果はそのまま渡せる
+   * // ✓ $href() result passes through
    * <SafeLink href={$href({ route: "/" })} />
    *
-   * // ✗ 生の string はコンパイルエラー
+   * // ✗ plain string causes a compile error
    * <SafeLink href="/" />
    */
-  branded?: boolean;
+  branded?: true;
 };
 
 type SearchParamsFor<
