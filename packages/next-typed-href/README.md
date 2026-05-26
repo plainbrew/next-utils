@@ -85,14 +85,12 @@ import type { AppRoutes, ParamsOf } from "@/../.next/types/routes";
 
 type AppRouteParamsMap = { [Route in AppRoutes]: ParamsOf<Route> };
 
-export const { $href } = defineTypedHrefWithNuqs
-  .routes<AppRoutes, AppRouteParamsMap>()
-  .nuqs({
-    "/search": {
-      q: parseAsString,
-      page: parseAsInteger,
-    },
-  });
+export const { $href } = defineTypedHrefWithNuqs.routes<AppRoutes, AppRouteParamsMap>().nuqs({
+  "/search": {
+    q: parseAsString,
+    page: parseAsInteger,
+  },
+});
 ```
 
 ### Usage
@@ -122,14 +120,12 @@ $href({ route: "/users/[id]", routeParams: { id: "42" }, searchParams: { tab: "p
 Parsers wrapped with `.withDefault()` make the type non-nullable and omit the key from the URL when the value equals the default:
 
 ```ts
-export const { $href } = defineTypedHrefWithNuqs
-  .routes<AppRoutes, AppRouteParamsMap>()
-  .nuqs({
-    "/search": {
-      q: parseAsString.withDefault(""),
-      page: parseAsInteger.withDefault(1),
-    },
-  });
+export const { $href } = defineTypedHrefWithNuqs.routes<AppRoutes, AppRouteParamsMap>().nuqs({
+  "/search": {
+    q: parseAsString.withDefault(""),
+    page: parseAsInteger.withDefault(1),
+  },
+});
 
 // Value differs from default → included
 $href({ route: "/search", searchParams: { q: "hello", page: 2 } });
@@ -161,14 +157,14 @@ export const { $href } = defineTypedHrefWithNuqs
   .withOptions({ requiredSearchParams: true })
   .nuqs({
     "/search": {
-      q: parseAsString,                    // required (no withDefault)
+      q: parseAsString, // required (no withDefault)
       page: parseAsInteger.withDefault(1), // optional (has withDefault)
     },
   });
 
-$href({ route: "/search", searchParams: { q: "hello" } });        // OK
-$href({ route: "/search" });                                       // Type error: searchParams is required
-$href({ route: "/search", searchParams: { page: 2 } });           // Type error: q is required
+$href({ route: "/search", searchParams: { q: "hello" } }); // OK
+$href({ route: "/search" }); // Type error: searchParams is required
+$href({ route: "/search", searchParams: { page: 2 } }); // Type error: q is required
 ```
 
 ### nuqs integration notes
