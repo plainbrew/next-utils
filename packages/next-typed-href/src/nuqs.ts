@@ -2,7 +2,9 @@ import type { inferParserType, SingleParserBuilder } from "nuqs";
 import { createSerializer } from "nuqs/server";
 
 import { resolveRoutePath } from "./common/resolveRoutePath";
-import type { RouteIdentityFor } from "./common/types";
+import type { HrefReturn, RouteIdentityFor, TypedHref } from "./common/types";
+
+export type { TypedHref };
 
 type AnyParserBuilder = SingleParserBuilder<any>;
 
@@ -50,6 +52,31 @@ export type NuqsBuilderOptions = {
    * $href({ route: "/search", searchParams: { page: 2 } })             // Type error: q is required
    */
   requiredSearchParams?: boolean;
+  /**
+   * When `true`, `$href()` returns `TypedHref` instead of `string`.
+   *
+   * `TypedHref` is a branded type that distinguishes `$href()` output from plain strings at the
+   * type level, while remaining assignable to `string` so existing code is unaffected.
+   *
+   * @default false
+   *
+   * @example
+   * import type { TypedHref } from "@plainbrew/next-typed-href";
+   *
+   * const { $href } = defineTypedHrefWithNuqs
+   *   .routes<Routes, RouteParamsMap>()
+   *   .withOptions({ branded: true })
+   *   .nuqs({ ... });
+   *
+   * type LinkProps = { href: TypedHref };
+   *
+   * // ✓ $href() の結果はそのまま渡せる
+   * <SafeLink href={$href({ route: "/" })} />
+   *
+   * // ✗ 生の string はコンパイルエラー
+   * <SafeLink href="/" />
+   */
+  branded?: boolean;
 };
 
 type SearchParamsFor<
@@ -98,7 +125,7 @@ type WithRoutes<
   ) => {
     $href: <T extends Routes>(
       options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
-    ) => string;
+    ) => HrefReturn<Options>;
   };
 };
 
@@ -130,7 +157,7 @@ function createWithRoutes<
 
       function $href<T extends Routes>(
         options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
-      ): string {
+      ): HrefReturn<Options> {
         const path = resolveRoutePath(
           options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
         );
@@ -150,7 +177,7 @@ function createWithRoutes<
         }
 
         const hash = options.hash ? `#${options.hash}` : "";
-        return path + search + hash;
+        return (path + search + hash) as HrefReturn<Options>;
       }
 
       return { $href };

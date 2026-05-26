@@ -1,6 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 
 import { defineTypedHref } from "./index";
+import type { TypedHref } from "./index";
 
 type Routes = "/" | "/users" | "/users/[id]" | "/posts/[...slug]" | "/docs/[[...path]]" | "/search";
 
@@ -101,6 +102,32 @@ describe("optional catch-all segments [[...path]]", () => {
         routeParams: { path: ["intro", "setup"] },
       }),
     ).toBe("/docs/intro/setup");
+  });
+});
+
+describe("branded option", () => {
+  test("returns string by default", () => {
+    expectTypeOf($href({ route: "/" })).toEqualTypeOf<string>();
+  });
+
+  test("returns TypedHref when branded: true", () => {
+    const { $href: $hrefBranded } = defineTypedHref.routes<Routes, RouteParamsMap>({
+      branded: true,
+    });
+    expectTypeOf($hrefBranded({ route: "/" })).toEqualTypeOf<TypedHref>();
+  });
+
+  test("branded result is assignable to string", () => {
+    const { $href: $hrefBranded } = defineTypedHref.routes<Routes, RouteParamsMap>({
+      branded: true,
+    });
+    const result: string = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
+  });
+
+  test("plain string is not assignable to TypedHref (type error)", () => {
+    // @ts-expect-error: plain string is not TypedHref
+    const _: TypedHref = "/";
   });
 });
 
