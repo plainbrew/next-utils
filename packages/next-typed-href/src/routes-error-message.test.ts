@@ -5,8 +5,7 @@ import ts from "typescript";
 import { describe, expect, test } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
-
-const VIRTUAL_FILE = resolve(here, "__virtual__check__.ts");
+const virtualFile = resolve(here, "snippet.ts");
 
 function compileSnippet(source: string): string {
   const compilerOptions: ts.CompilerOptions = {
@@ -17,21 +16,19 @@ function compileSnippet(source: string): string {
     noEmit: true,
     skipLibCheck: true,
     esModuleInterop: true,
-    lib: ["lib.es2019.d.ts", "lib.dom.d.ts"],
+    lib: ["lib.es2019.d.ts", "lib.webworker.d.ts"],
     types: [],
   };
   const host = ts.createCompilerHost(compilerOptions, true);
   const originalGetSourceFile = host.getSourceFile.bind(host);
   host.getSourceFile = (name, languageVersion, onError, shouldCreate) => {
-    if (name === VIRTUAL_FILE) {
+    if (name === virtualFile) {
       return ts.createSourceFile(name, source, languageVersion, true);
     }
     return originalGetSourceFile(name, languageVersion, onError, shouldCreate);
   };
-  host.fileExists = (name) => name === VIRTUAL_FILE || ts.sys.fileExists(name);
-  host.readFile = (name) => (name === VIRTUAL_FILE ? source : ts.sys.readFile(name));
 
-  const program = ts.createProgram([VIRTUAL_FILE], compilerOptions, host);
+  const program = ts.createProgram([virtualFile], compilerOptions, host);
   const diagnostics = ts.getPreEmitDiagnostics(program);
   return ts.formatDiagnosticsWithColorAndContext(diagnostics, {
     getCurrentDirectory: () => here,
@@ -41,22 +38,23 @@ function compileSnippet(source: string): string {
 }
 
 describe("routes() type-argument guidance surfaces in TS error output", () => {
-  test("defineTypedHref.routes() error mentions the guidance parameter name", () => {
-    const output = compileSnippet(`
-      import { defineTypedHref } from "./index";
-      defineTypedHref.routes();
-    `);
-    expect(output).toContain("TS2554");
-    expect(output).toContain(
-      "Arguments for the rest parameter 'pass_Routes_and_RouteParamsMap_as_type_arguments'",
-    );
-  });
-
-  test("defineTypedHrefWithNuqs.routes() error mentions the guidance parameter name", () => {
-    const output = compileSnippet(`
-      import { defineTypedHrefWithNuqs } from "./nuqs";
-      defineTypedHrefWithNuqs.routes();
-    `);
+  test.each([
+    {
+      name: "defineTypedHref",
+      source: `
+        import { defineTypedHref } from "./index";
+        defineTypedHref.routes();
+      `,
+    },
+    {
+      name: "defineTypedHrefWithNuqs",
+      source: `
+        import { defineTypedHrefWithNuqs } from "./nuqs";
+        defineTypedHrefWithNuqs.routes();
+      `,
+    },
+  ])("$name.routes() error mentions the guidance parameter name", ({ source }) => {
+    const output = compileSnippet(source);
     expect(output).toContain("TS2554");
     expect(output).toContain(
       "Arguments for the rest parameter 'pass_Routes_and_RouteParamsMap_as_type_arguments'",

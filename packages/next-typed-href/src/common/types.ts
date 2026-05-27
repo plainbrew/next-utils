@@ -71,24 +71,17 @@ export type RouteIdentityFor<
   : never;
 
 /**
- * Resolves to a required rest-parameter when `.routes()` is called without
- * explicit type arguments, forcing an "Expected 1 arguments, but got 0" error
- * **on the `.routes()` call itself** — not on a downstream property access.
+ * Forces an "Expected 1 arguments, but got 0" error **on `.routes()` itself**
+ * — not on a downstream `.$href(...)` — when type arguments are omitted.
  *
- * `Routes` defaults to its constraint upper bound (`string`) when the caller
- * does not supply a type argument; `string extends Routes` detects that and
- * resolves to a single-element tuple. The parameter name spells out the fix
- * and its type carries the explanatory message — both visible on hover.
- * When `Routes` is a proper literal union the tuple is empty, so type-correct
- * call sites stay nullary.
+ * The actual user-facing guidance comes from the rest-parameter name at the
+ * call site (`...pass_Routes_and_RouteParamsMap_as_type_arguments`), which
+ * tsc prints back in the diagnostic. The inner tuple-element type literal is
+ * surfaced only via IDE hover.
  *
  * @example
- * // ❌ Type error AT the call site: "Expected 1 arguments, but got 0."
- * //    Hover on .routes shows the required parameter's name and message.
- * defineTypedHref.routes();
- *
- * // ✅ OK
- * defineTypedHref.routes<"/", { "/": Record<string, never> }>();
+ * defineTypedHref.routes();                           // ❌ TS2554 at this line
+ * defineTypedHref.routes<Routes, RouteParamsMap>();   // ✅
  */
 export type RequireExplicitRoutesArgs<Routes extends string> = string extends Routes
   ? [
