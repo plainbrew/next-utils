@@ -74,17 +74,14 @@ export type RouteIdentityFor<
  * Forces an "Expected 1 arguments, but got 0" error **on `.routes()` itself**
  * — not on a downstream `.$href(...)` — when type arguments are omitted.
  *
- * The actual user-facing guidance comes from the rest-parameter name at the
- * call site (`...pass_Routes_and_RouteParamsMap_as_type_arguments`), which
- * tsc prints back in the diagnostic. The inner tuple-element type literal is
- * surfaced only via IDE hover.
+ * The rest-parameter name at the call site (`...typeArguments`) appears in
+ * the tsc diagnostic; the inner tuple-element type literal carries the full
+ * explanation and is surfaced via IDE hover.
  *
  * @example
  * defineTypedHref.routes();                           // ❌ TS2554 at this line
  * defineTypedHref.routes<Routes, RouteParamsMap>();   // ✅
  */
 export type RequireExplicitRoutesArgs<Routes extends string> = string extends Routes
-  ? [
-      pass_Routes_and_RouteParamsMap_as_type_arguments: "routes<Routes, RouteParamsMap>() requires explicit type arguments",
-    ]
+  ? [typeArguments: "routes<Routes, RouteParamsMap>() requires explicit type arguments"]
   : [];

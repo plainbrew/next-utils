@@ -136,7 +136,7 @@ type WithRoutes<
 
 type TypedHrefWithNuqsBuilder = {
   routes: <Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>(
-    ...pass_Routes_and_RouteParamsMap_as_type_arguments: RequireExplicitRoutesArgs<Routes>
+    ...typeArguments: RequireExplicitRoutesArgs<Routes>
   ) => WithRoutes<Routes, RouteParamsMap, {}>;
 };
 
@@ -163,7 +163,10 @@ function createWithRoutes<
         options: PathOptionsFor<T, Routes, RouteParamsMap, NuqsMap, Options>,
       ): HrefReturn<Options> {
         const path = resolveRoutePath(
-          options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
+          options as {
+            route: T;
+            routeParams?: Record<string, string | string[] | undefined>;
+          },
         );
 
         const serializer = serializers[options.route];

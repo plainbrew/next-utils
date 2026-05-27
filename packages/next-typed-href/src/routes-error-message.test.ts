@@ -56,9 +56,7 @@ describe("routes() type-argument guidance surfaces in TS error output", () => {
   ])("$name.routes() error mentions the guidance parameter name", ({ source }) => {
     const output = compileSnippet(source);
     expect(output).toContain("TS2554");
-    expect(output).toContain(
-      "Arguments for the rest parameter 'pass_Routes_and_RouteParamsMap_as_type_arguments'",
-    );
+    expect(output).toContain("Arguments for the rest parameter 'typeArguments'");
   });
 
   test("defineTypedHref.routes<R, M>() with explicit args produces no error", () => {
