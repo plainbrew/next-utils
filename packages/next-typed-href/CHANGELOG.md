@@ -1,5 +1,11 @@
 # @plainbrew/next-typed-href
 
+## 0.5.0
+
+### Minor Changes
+
+- [#83](https://github.com/plainbrew/next-utils/pull/83) [`a39a62b`](https://github.com/plainbrew/next-utils/commit/a39a62bec597749b69047c27eacddf0193cc9c7f) Thanks [@amotarao](https://github.com/amotarao)! - feat: add `branded` option to return `TypedHref` branded type from `$href()`
+
 ## 0.4.0
 
 ### Minor Changes
