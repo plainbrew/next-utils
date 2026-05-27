@@ -1,5 +1,12 @@
 # example-next-typed-href-nuqs
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`a39a62b`](https://github.com/plainbrew/next-utils/commit/a39a62bec597749b69047c27eacddf0193cc9c7f)]:
+  - @plainbrew/next-typed-href@0.5.0
+
 ## 0.0.3
 
 ### Patch Changes
