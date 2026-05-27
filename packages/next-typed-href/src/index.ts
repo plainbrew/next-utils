@@ -19,18 +19,16 @@
  *
  * $href({ route: "/users/", searchParams: { q: "hello" }, hash: "top" })
  * // => "/users/?q=hello#top"
+ *
+ * // With branded option — $href returns TypedHref instead of string:
+ * const { $href } = defineTypedHref
+ *   .routes<Routes, RouteParamsMap>()
+ *   .withOptions({ branded: true });
  */
 import { resolveRoutePath } from "./common/resolveRoutePath";
-import type { RouteIdentityFor } from "./common/types";
+import type { HrefOptions, HrefReturn, RouteIdentityFor, TypedHref } from "./common/types";
 
-type TypedHrefBuilder = {
-  routes: <
-    Routes extends string,
-    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
-  >() => {
-    $href: <T extends Routes>(options: PathOptionsFor<T, Routes, RouteParamsMap>) => string;
-  };
-};
+export type { TypedHref };
 
 type PathOptionsFor<
   T extends string,
@@ -41,24 +39,54 @@ type PathOptionsFor<
   hash?: string;
 };
 
-function createRoutes<
+type WithTypedHrefRoutes<
   Routes extends string,
   RouteParamsMap extends Record<Routes, Record<string, unknown>>,
->() {
-  function $href<T extends Routes>(options: PathOptionsFor<T, Routes, RouteParamsMap>): string {
+  Options extends HrefOptions,
+> = {
+  withOptions: <const NewOptions extends HrefOptions>(
+    opts: NewOptions,
+  ) => WithTypedHrefRoutes<Routes, RouteParamsMap, NewOptions>;
+  $href: <T extends Routes>(
+    pathOptions: PathOptionsFor<T, Routes, RouteParamsMap>,
+  ) => HrefReturn<Options>;
+};
+
+type TypedHrefBuilder = {
+  routes: <
+    Routes extends string,
+    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
+  >() => WithTypedHrefRoutes<Routes, RouteParamsMap, {}>;
+};
+
+function createWithTypedHrefRoutes<
+  Routes extends string,
+  RouteParamsMap extends Record<Routes, Record<string, unknown>>,
+  Options extends HrefOptions = {},
+>(_options?: Options): WithTypedHrefRoutes<Routes, RouteParamsMap, Options> {
+  function $href<T extends Routes>(
+    pathOptions: PathOptionsFor<T, Routes, RouteParamsMap>,
+  ): HrefReturn<Options> {
     const path = resolveRoutePath(
-      options as { route: T; routeParams?: Record<string, string | string[] | undefined> },
+      pathOptions as { route: T; routeParams?: Record<string, string | string[] | undefined> },
     );
-    const search = options.searchParams
-      ? `?${new URLSearchParams(options.searchParams).toString()}`
+    const search = pathOptions.searchParams
+      ? `?${new URLSearchParams(pathOptions.searchParams).toString()}`
       : "";
-    const hash = options.hash ? `#${options.hash}` : "";
-    return path + search + hash;
+    const hash = pathOptions.hash ? `#${pathOptions.hash}` : "";
+    return (path + search + hash) as HrefReturn<Options>;
   }
 
-  return { $href };
+  return {
+    withOptions<const NewOptions extends HrefOptions>(opts: NewOptions) {
+      return createWithTypedHrefRoutes<Routes, RouteParamsMap, NewOptions>(opts);
+    },
+    $href,
+  };
 }
 
 export const defineTypedHref: TypedHrefBuilder = {
-  routes: createRoutes,
+  routes<Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>() {
+    return createWithTypedHrefRoutes<Routes, RouteParamsMap>();
+  },
 };

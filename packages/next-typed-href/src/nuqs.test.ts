@@ -2,6 +2,7 @@ import { parseAsBoolean, parseAsInteger, parseAsString } from "nuqs/server";
 import { describe, expect, expectTypeOf, test } from "vitest";
 
 import { defineTypedHrefWithNuqs } from "./nuqs";
+import type { TypedHref } from "./nuqs";
 
 type Routes = "/" | "/users/[id]" | "/search" | "/posts";
 
@@ -223,6 +224,31 @@ describe(".withOptions({ requiredSearchParams: true }) method", () => {
   test("rejects missing required field (type error)", () => {
     // @ts-expect-error: q has no withDefault, so it is required
     $hrefReq({ route: "/search", searchParams: { page: 2 } });
+  });
+});
+
+describe(".withOptions({ branded: true })", () => {
+  test("returns TypedHref when branded: true", () => {
+    const { $href: $hrefBranded } = defineTypedHrefWithNuqs
+      .routes<Routes, RouteParamsMap>()
+      .withOptions({ branded: true })
+      .nuqs({});
+    const result: TypedHref = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
+  });
+
+  test("branded result is assignable to string", () => {
+    const { $href: $hrefBranded } = defineTypedHrefWithNuqs
+      .routes<Routes, RouteParamsMap>()
+      .withOptions({ branded: true })
+      .nuqs({});
+    const result: string = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
+  });
+
+  test("default $href() is not assignable to TypedHref (type error)", () => {
+    // @ts-expect-error: string is not TypedHref
+    const _: TypedHref = $href({ route: "/" });
   });
 });
 

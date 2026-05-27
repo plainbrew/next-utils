@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { defineTypedHref } from "./index";
+import type { TypedHref } from "./index";
 
 type Routes = "/" | "/users" | "/users/[id]" | "/posts/[...slug]" | "/docs/[[...path]]" | "/search";
 
@@ -101,6 +102,32 @@ describe("optional catch-all segments [[...path]]", () => {
         routeParams: { path: ["intro", "setup"] },
       }),
     ).toBe("/docs/intro/setup");
+  });
+});
+
+describe("branded option", () => {
+  const { $href: $hrefBranded } = defineTypedHref
+    .routes<Routes, RouteParamsMap>()
+    .withOptions({ branded: true });
+
+  test("returns TypedHref when branded: true", () => {
+    const result: TypedHref = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
+  });
+
+  test("branded result is assignable to string", () => {
+    const result: string = $hrefBranded({ route: "/" });
+    expect(result).toBe("/");
+  });
+
+  test("default $href() is not assignable to TypedHref (type error)", () => {
+    // @ts-expect-error: string is not TypedHref
+    const _: TypedHref = $href({ route: "/" });
+  });
+
+  test("plain string is not assignable to TypedHref (type error)", () => {
+    // @ts-expect-error: plain string is not TypedHref
+    const _: TypedHref = "/";
   });
 });
 

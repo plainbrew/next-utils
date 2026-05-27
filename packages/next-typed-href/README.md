@@ -68,6 +68,36 @@ $href({ route: "/posts/[...slug]", routeParams: { slug: ["2024", "hello"] } });
 - `hash` should be specified without the leading `#`.
 - Optional catch-all segments (`[[...param]]`) resolve to an empty string when `undefined` is passed.
 
+## TypedHref — branded return type
+
+By default `$href()` returns `string`. Pass `{ branded: true }` to `.withOptions()` to get a `TypedHref` branded type instead, which lets you distinguish `$href()` output from plain strings at the type level.
+
+```ts
+import { defineTypedHref } from "@plainbrew/next-typed-href";
+import type { TypedHref } from "@plainbrew/next-typed-href";
+
+export const { $href } = defineTypedHref
+  .routes<AppRoutes, AppRouteParamsMap>()
+  .withOptions({ branded: true });
+```
+
+```ts
+import { $href } from "@/lib/href";
+import type { TypedHref } from "@plainbrew/next-typed-href";
+
+type LinkProps = { href: TypedHref };
+
+function SafeLink({ href }: LinkProps) { ... }
+
+// ✓ $href() result passes through
+<SafeLink href={$href({ route: "/" })} />
+
+// ✗ plain string causes a compile error
+<SafeLink href="/" />
+```
+
+`TypedHref` is a subtype of `string`, so it can be passed anywhere a `string` is expected — existing code is unaffected.
+
 ## nuqs integration
 
 For routes with typed search params powered by [nuqs](https://nuqs.47ng.com/), use the `./nuqs` entry point:
@@ -166,6 +196,10 @@ $href({ route: "/search", searchParams: { q: "hello" } }); // OK
 $href({ route: "/search" }); // Type error: searchParams is required
 $href({ route: "/search", searchParams: { page: 2 } }); // Type error: q is required
 ```
+
+#### `branded`
+
+Returns `TypedHref` instead of `string` — see [TypedHref](#typedhref--branded-return-type) above.
 
 ### nuqs integration notes
 
