@@ -136,7 +136,7 @@ type WithRoutes<
 
 type TypedHrefWithNuqsBuilder = {
   routes: <Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>(
-    ...args: RequireExplicitRoutesArgs<Routes>
+    ...pass_Routes_and_RouteParamsMap_as_type_arguments: RequireExplicitRoutesArgs<Routes>
   ) => WithRoutes<Routes, RouteParamsMap, {}>;
 };
 
