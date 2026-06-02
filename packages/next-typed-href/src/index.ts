@@ -26,7 +26,13 @@
  *   .withOptions({ branded: true });
  */
 import { resolveRoutePath } from "./common/resolveRoutePath";
-import type { HrefOptions, HrefReturn, RouteIdentityFor, TypedHref } from "./common/types";
+import type {
+  HrefOptions,
+  HrefReturn,
+  RequireExplicitRoutesArgs,
+  RouteIdentityFor,
+  TypedHref,
+} from "./common/types";
 
 export type { TypedHref };
 
@@ -53,10 +59,9 @@ type WithTypedHrefRoutes<
 };
 
 type TypedHrefBuilder = {
-  routes: <
-    Routes extends string,
-    RouteParamsMap extends Record<Routes, Record<string, unknown>>,
-  >() => WithTypedHrefRoutes<Routes, RouteParamsMap, {}>;
+  routes: <Routes extends string, RouteParamsMap extends Record<Routes, Record<string, unknown>>>(
+    ...typeArguments: RequireExplicitRoutesArgs<Routes>
+  ) => WithTypedHrefRoutes<Routes, RouteParamsMap, {}>;
 };
 
 function createWithTypedHrefRoutes<

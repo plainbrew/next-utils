@@ -258,4 +258,16 @@ describe("entry API surface", () => {
     expectTypeOf(defineTypedHrefWithNuqs).not.toHaveProperty("nuqs");
     expectTypeOf(defineTypedHrefWithNuqs).not.toHaveProperty("withOptions");
   });
+
+  test("calling routes() without type arguments is a type error at the call site", () => {
+    // @ts-expect-error: routes<Routes, RouteParamsMap>() requires explicit type arguments
+    defineTypedHrefWithNuqs.routes();
+  });
+
+  test("routes<R, M>() with explicit type arguments returns the builder", () => {
+    expectTypeOf(defineTypedHrefWithNuqs.routes<Routes, RouteParamsMap>()).toHaveProperty("nuqs");
+    expectTypeOf(defineTypedHrefWithNuqs.routes<Routes, RouteParamsMap>()).toHaveProperty(
+      "withOptions",
+    );
+  });
 });
