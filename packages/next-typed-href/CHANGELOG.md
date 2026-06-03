@@ -1,5 +1,35 @@
 # @plainbrew/next-typed-href
 
+## 0.6.0
+
+### Minor Changes
+
+- [#82](https://github.com/plainbrew/next-utils/pull/82) [`30d6ba9`](https://github.com/plainbrew/next-utils/commit/30d6ba9b0c684980f41b457bc120c485cdc716e4) Thanks [@akameco](https://github.com/akameco)! - feat: require explicit type arguments on `.routes()`
+
+  `defineTypedHref.routes()` and `defineTypedHrefWithNuqs.routes()` now require
+  explicit `<Routes, RouteParamsMap>` type arguments. Calling them without type
+  arguments fails with a TypeScript error **at the call site** — previously
+  `Routes` would silently widen to `string`, defeating the type-safety the
+  library promises.
+
+  ```ts
+  // ❌ Type error AT this line:
+  //    "Expected 1 arguments, but got 0."
+  //    Hover shows the missing parameter's name and message.
+  defineTypedHref.routes();
+
+  // ✅ OK
+  defineTypedHref.routes<Routes, RouteParamsMap>();
+  ```
+
+  The mechanism is a conditional rest parameter: when `string extends Routes`
+  (i.e. no type argument was supplied), `routes` requires a single phantom
+  argument whose name and type spell out the fix. When `Routes` is a proper
+  literal union, the rest tuple is empty and the call is nullary as before.
+
+  This is a type-level change only — no runtime behavior changes. Existing
+  callers that already pass explicit type arguments are unaffected.
+
 ## 0.5.0
 
 ### Minor Changes
