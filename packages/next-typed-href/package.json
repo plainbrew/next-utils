@@ -46,7 +46,7 @@
     "nuqs": "^2.8.9",
     "tsdown": "^0.22.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "peerDependencies": {
     "nuqs": ">=2.0.0 <3.0.0"
