@@ -44,7 +44,7 @@
   "devDependencies": {
     "@types/node": "^22.20.0",
     "nuqs": "^2.9.0",
-    "tsdown": "^0.22.0",
+    "tsdown": "^0.22.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   },
