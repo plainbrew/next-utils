@@ -1,5 +1,15 @@
 # @plainbrew/vercel-basic-auth
 
+## 0.3.0
+
+### Minor Changes
+
+- [#114](https://github.com/plainbrew/next-utils/pull/114) [`4fe0d30`](https://github.com/plainbrew/next-utils/commit/4fe0d3062a1f185c43cf836d9d60e8769b13ee0e) Thanks [@amotarao](https://github.com/amotarao)! - feat: add `only-preview` value to `vercelEnvTarget`
+
+  `vercelEnvTarget: "only-preview"` applies Basic Auth only on Vercel preview
+  deployments. Useful when you want to protect preview URLs while keeping
+  production open.
+
 ## 0.2.1
 
 ### Patch Changes
