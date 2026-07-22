@@ -1,4 +1,4 @@
-export type VercelEnvTarget = "only-production" | "all" | "disabled";
+export type VercelEnvTarget = "only-production" | "only-preview" | "all" | "disabled";
 
 export type BasicAuthOptions = {
   username: string | undefined;
@@ -44,6 +44,9 @@ export function basicAuth(
       return null;
     }
     if (vercelEnvTarget === "only-production" && process.env.VERCEL_ENV !== "production") {
+      return null;
+    }
+    if (vercelEnvTarget === "only-preview" && process.env.VERCEL_ENV !== "preview") {
       return null;
     }
   }
