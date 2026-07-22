@@ -98,7 +98,7 @@ describe("Vercel 環境 (VERCEL=1)", () => {
     ).toBeNull();
   });
 
-  test("vercelEnvTarget=only-preview で VERCEL_ENV=preview のとき username が undefined でも null を返す", () => {
+  test("vercelEnvTarget=only-preview で VERCEL_ENV=production のとき username が undefined でも null を返す", () => {
     process.env.VERCEL = "1";
     process.env.VERCEL_ENV = "production";
     const req = makeRequest();
