@@ -73,6 +73,44 @@ describe("Vercel 環境 (VERCEL=1)", () => {
     expect(res?.status).toBe(401);
   });
 
+  test("vercelEnvTarget=only-preview で VERCEL_ENV=preview のとき認証チェックをする", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_ENV = "preview";
+    const req = makeRequest();
+    const res = basicAuth(req, {
+      username: USERNAME,
+      password: PASSWORD,
+      vercelEnvTarget: "only-preview",
+    });
+    expect(res?.status).toBe(401);
+  });
+
+  test("vercelEnvTarget=only-preview で VERCEL_ENV=production のとき null を返す", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_ENV = "production";
+    const req = makeRequest();
+    expect(
+      basicAuth(req, {
+        username: USERNAME,
+        password: PASSWORD,
+        vercelEnvTarget: "only-preview",
+      }),
+    ).toBeNull();
+  });
+
+  test("vercelEnvTarget=only-preview で VERCEL_ENV=preview のとき username が undefined でも null を返す", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_ENV = "production";
+    const req = makeRequest();
+    expect(
+      basicAuth(req, {
+        username: undefined,
+        password: undefined,
+        vercelEnvTarget: "only-preview",
+      }),
+    ).toBeNull();
+  });
+
   test("vercelEnvTarget=all で VERCEL_ENV=preview のとき認証チェックをする", () => {
     process.env.VERCEL = "1";
     process.env.VERCEL_ENV = "preview";
