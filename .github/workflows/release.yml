@@ -16,15 +16,15 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v6.1.0
+      - uses: pnpm/action-setup@v4.3.0
+      - uses: actions/setup-node@v6.5.0
         with:
           node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - uses: changesets/action@v1
+      - uses: changesets/action@v1.9.0
         with:
           publish: pnpm run release
         env:
