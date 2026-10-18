@@ -13,12 +13,12 @@
     "@plainbrew/next-typed-href": "workspace:*",
     "next": "^16.2.10",
     "nuqs": "^2.9.0",
-    "react": "^19.2.7",
+    "react": "^19.3.1",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
-    "@types/react": "^19.2.16",
+    "@types/react": "^19.3.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^6.0.3"
   }
