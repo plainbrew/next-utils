@@ -1,0 +1,41 @@
+name: verify-pinned-actions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "**/action.yml"
+      - "**/action.yaml"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - "**/action.yml"
+      - "**/action.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Verify all uses are pinned to full commit SHA
+        run: |
+          files=(); while IFS= read -r f; do files+=("$f"); done < <(git ls-files '.github/workflows/*.yml' '.github/workflows/*.yaml' 'action.yml' 'action.yaml' '*/action.yml' '*/action.yaml')
+          [ ${#files[@]} -eq 0 ] && exit 0
+          unpinned=$(grep -nE '^\s*-?\s*uses:\s*[^.[:space:]][^@]*@' "${files[@]}" \
+            | grep -vE '@[0-9a-f]{40}[[:space:]]+#[[:space:]]*v?[0-9]' \
+            | grep -v 'docker://' || true)
+          if [ -n "$unpinned" ]; then
+            echo "::error::フルコミット SHA + バージョンコメントで固定されていない uses: があります"
+            echo "$unpinned"
+            exit 1
+          fi
+          echo "OK: all uses are pinned"
